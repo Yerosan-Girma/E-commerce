@@ -43,7 +43,7 @@ export const createProduct = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Get all products with pagination
+// @desc    Get all products with pagination, search, and filtering
 // @route   GET /api/products
 // @access  Public
 export const getProducts = asyncHandler(async (req, res) => {
@@ -51,15 +51,155 @@ export const getProducts = asyncHandler(async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
-  const products = await Product.find()
-    .populate('category', 'name description')
-    .populate('store', 'storeName logo')
-    .populate('seller', 'name email')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit);
+  const {
+    keyword,
+    category,
+    minPrice,
+    maxPrice,
+    brand,
+    rating,
+    sortBy = 'latest',
+  } = req.query;
 
-  const total = await Product.countDocuments();
+  // Build match stage for filtering
+  const matchStage = {};
+
+  // Keyword search (title or description)
+  if (keyword) {
+    matchStage.$or = [
+      { title: { $regex: keyword, $options: 'i' } },
+      { description: { $regex: keyword, $options: 'i' } },
+    ];
+  }
+
+  // Category filter
+  if (category) {
+    matchStage.category = category;
+  }
+
+  // Price range filter
+  if (minPrice || maxPrice) {
+    matchStage.price = {};
+    if (minPrice) matchStage.price.$gte = parseFloat(minPrice);
+    if (maxPrice) matchStage.price.$lte = parseFloat(maxPrice);
+  }
+
+  // Brand filter
+  if (brand) {
+    matchStage.brand = { $regex: brand, $options: 'i' };
+  }
+
+  // Rating filter (minimum rating)
+  if (rating) {
+    matchStage.rating = { $gte: parseFloat(rating) };
+  }
+
+  // Build sort stage
+  let sortStage = {};
+  switch (sortBy) {
+    case 'priceAsc':
+      sortStage.price = 1;
+      break;
+    case 'priceDesc':
+      sortStage.price = -1;
+      break;
+    case 'topRated':
+      sortStage.rating = -1;
+      break;
+    case 'latest':
+    default:
+      sortStage.createdAt = -1;
+      break;
+  }
+
+  // Aggregation pipeline
+  const aggregationPipeline = [
+    { $match: matchStage },
+    {
+      $lookup: {
+        from: 'categories',
+        localField: 'category',
+        foreignField: '_id',
+        as: 'category',
+      },
+    },
+    {
+      $lookup: {
+        from: 'stores',
+        localField: 'store',
+        foreignField: '_id',
+        as: 'store',
+      },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'seller',
+        foreignField: '_id',
+        as: 'seller',
+      },
+    },
+    {
+      $unwind: {
+        path: '$category',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: '$store',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: '$seller',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project: {
+        title: 1,
+        description: 1,
+        images: 1,
+        price: 1,
+        stock: 1,
+        brand: 1,
+        rating: 1,
+        numReviews: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        category: {
+          _id: '$category._id',
+          name: '$category.name',
+          description: '$category.description',
+        },
+        store: {
+          _id: '$store._id',
+          storeName: '$store.storeName',
+          logo: '$store.logo',
+        },
+        seller: {
+          _id: '$seller._id',
+          name: '$seller.name',
+          email: '$seller.email',
+        },
+      },
+    },
+    { $sort: sortStage },
+  ];
+
+  // Get total count for pagination
+  const totalPipeline = [...aggregationPipeline];
+  totalPipeline.push({ $count: 'total' });
+  const totalResult = await Product.aggregate(totalPipeline);
+  const total = totalResult.length > 0 ? totalResult[0].total : 0;
+
+  // Add pagination to pipeline
+  aggregationPipeline.push({ $skip: skip });
+  aggregationPipeline.push({ $limit: limit });
+
+  const products = await Product.aggregate(aggregationPipeline);
 
   res.status(200).json({
     success: true,
