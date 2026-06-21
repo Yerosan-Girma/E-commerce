@@ -12,6 +12,7 @@ import orderRoutes from './routes/order.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 import reviewRoutes from './routes/review.routes.js';
 import addressRoutes from './routes/address.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 
 // Load environment variables
 dotenv.config();
@@ -46,6 +47,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/addresses', addressRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Root endpoint for testing
 app.get('/', (req, res) => {
