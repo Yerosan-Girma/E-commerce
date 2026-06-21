@@ -95,6 +95,12 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
+// Indexes for query optimization
+orderSchema.index({ status: 1 });
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ user: 1 });
+orderSchema.index({ 'orderItems.product': 1 });
+
 const Order = mongoose.model('Order', orderSchema);
 
 export default Order;
