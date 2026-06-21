@@ -80,3 +80,14 @@ export const loginUser = asyncHandler(async (req, res) => {
     },
   });
 });
+
+// @desc    Get current user profile
+// @route   GET /api/auth/me
+// @access  Private
+export const getMe = asyncHandler(async (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'User profile retrieved successfully',
+    data: req.user,
+  });
+});
