@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { errorHandler } from './middleware/error.middleware.js';
 import authRoutes from './routes/auth.routes.js';
 import testRoutes from './routes/test.routes.js';
+import storeRoutes from './routes/store.routes.js';
 
 // Load environment variables
 dotenv.config();
@@ -28,6 +29,7 @@ app.use((req, res, next) => {
 // Mount Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/test', testRoutes);
+app.use('/api/stores', storeRoutes);
 
 // Root endpoint for testing
 app.get('/', (req, res) => {
