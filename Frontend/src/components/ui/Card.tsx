@@ -1,23 +1,58 @@
 import { motion } from 'framer-motion'
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import { cn } from '../../lib/utils'
 
 interface CardProps {
-  children: ReactNode
-  className?: string
   hover?: boolean
+  glass?: boolean
+  neon?: boolean
+  padding?: 'none' | 'sm' | 'md' | 'lg'
+  gradient?: boolean
+  children?: ReactNode
+  className?: string
 }
 
-const Card = ({ children, className = '', hover = true }: CardProps) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: '-50px' }}
-    transition={{ duration: 0.5 }}
-    whileHover={hover ? { y: -6, boxShadow: '0 20px 40px -12px rgba(0,0,0,0.15)' } : {}}
-    className={`bg-white dark:bg-darksurface rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/50 transition-shadow ${className}`}
-  >
-    {children}
-  </motion.div>
-)
+const paddingClasses = {
+  none: '',
+  sm: 'p-4',
+  md: 'p-6',
+  lg: 'p-8',
+}
 
-export default Card
+export default function Card({
+  hover = false,
+  glass = true,
+  neon = false,
+  padding = 'md',
+  gradient = false,
+  children,
+  className = '',
+  ...props
+}: CardProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-50px' }}
+      transition={{ duration: 0.5 }}
+      whileHover={hover ? { 
+        y: -8, 
+        scale: 1.02,
+        boxShadow: neon ? '0 0 30px rgba(99, 102, 241, 0.4)' : '0 20px 40px -12px rgba(0,0,0,0.3)'
+      } : {}}
+      className={cn(
+        'rounded-2xl transition-all duration-300',
+        glass && 'glass-card',
+        gradient && 'bg-gradient-mesh',
+        neon && 'neon-glow',
+        !glass && !gradient && 'bg-background-light border border-white/10',
+        hover && 'cursor-pointer',
+        paddingClasses[padding],
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  )
+}

@@ -7,105 +7,39 @@ import asyncHandler from '../utils/asyncHandler.js';
 // @route   POST /api/orders
 // @access  Private (Authenticated users only)
 export const placeOrder = asyncHandler(async (req, res) => {
-  const { shippingAddress, paymentMethod } = req.body;
+  const { orderItems, shippingAddress, paymentMethod, itemsPrice, taxPrice, shippingPrice, totalPrice } = req.body;
 
   // Validate required fields
+  if (!orderItems || orderItems.length === 0) {
+    const error = new Error('Please provide order items');
+    error.statusCode = 400;
+    throw error;
+  }
+
   if (!shippingAddress || !paymentMethod) {
     const error = new Error('Please provide shipping address and payment method');
     error.statusCode = 400;
     throw error;
   }
 
-  // Get user's cart
-  const cart = await Cart.findOne({ user: req.user._id }).populate(
-    'items.product',
-    'title price stock'
-  );
+  // Create order directly from provided data
+  const order = await Order.create({
+    user: req.user._id,
+    orderItems,
+    shippingAddress,
+    paymentMethod,
+    itemsPrice: itemsPrice || 0,
+    taxPrice: taxPrice || 0,
+    shippingPrice: shippingPrice || 0,
+    totalPrice: totalPrice || 0,
+    status: 'Pending',
+  });
 
-  if (!cart || cart.items.length === 0) {
-    const error = new Error('Cart is empty');
-    error.statusCode = 400;
-    throw error;
-  }
-
-  // Check stock availability
-  for (const item of cart.items) {
-    if (item.product.stock < item.quantity) {
-      const error = new Error(`Insufficient stock for product: ${item.product.title}`);
-      error.statusCode = 400;
-      throw error;
-    }
-  }
-
-  // Calculate prices
-  const itemsPrice = cart.items.reduce(
-    (total, item) => total + item.product.price * item.quantity,
-    0
-  );
-  const taxPrice = itemsPrice * 0.1; // 10% tax
-  const shippingPrice = itemsPrice > 100 ? 0 : 10; // Free shipping for orders over $100
-  const totalPrice = itemsPrice + taxPrice + shippingPrice;
-
-  // Build order items
-  const orderItems = cart.items.map((item) => ({
-    product: item.product._id,
-    title: item.product.title,
-    quantity: item.quantity,
-    price: item.product.price,
-  }));
-
-  // Use transaction to create order and update product stock
-  const session = await Order.startSession();
-  session.startTransaction();
-
-  try {
-    // Create order
-    const order = await Order.create(
-      [
-        {
-          user: req.user._id,
-          orderItems,
-          shippingAddress,
-          paymentMethod,
-          itemsPrice,
-          taxPrice,
-          shippingPrice,
-          totalPrice,
-          status: 'Pending',
-        },
-      ],
-      { session }
-    );
-
-    // Update product stock
-    for (const item of cart.items) {
-      await Product.findByIdAndUpdate(
-        item.product._id,
-        { $inc: { stock: -item.quantity } },
-        { session }
-      );
-    }
-
-    // Clear cart
-    await Cart.findOneAndUpdate(
-      { user: req.user._id },
-      { $set: { items: [] } },
-      { session }
-    );
-
-    await session.commitTransaction();
-    session.endSession();
-
-    res.status(201).json({
-      success: true,
-      message: 'Order placed successfully',
-      data: order[0],
-    });
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    throw error;
-  }
+  res.status(201).json({
+    success: true,
+    message: 'Order placed successfully',
+    data: order,
+  });
 });
 
 // @desc    Get user's orders

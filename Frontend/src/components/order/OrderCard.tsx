@@ -1,35 +1,75 @@
 import Badge from '../ui/Badge'
-import Button from '../ui/Button'
-import { FiTruck } from 'react-icons/fi'
+import { FiPackage, FiChevronRight } from 'react-icons/fi'
 
-const OrderCard = ({ order }: { order?: any }) => {
-  const defaultOrder = {
-    id: '#ORD-12345',
-    date: '2025-06-15',
-    total: 89.97,
-    status: 'processing',
-    items: 3,
-  }
-  const o = order || defaultOrder
+interface OrderItem {
+  name: string
+  qty: number
+  price: number
+}
 
-  const statusVariant = o.status === 'delivered' ? 'success' : o.status === 'processing' ? 'warning' : 'primary'
+export interface OrderSummary {
+  id: string
+  date: string
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+  items: OrderItem[]
+  total: number
+}
 
+type BadgeVariant = 'success' | 'warning' | 'error' | 'primary' | 'secondary' | 'gray'
+
+const statusVariant: Record<OrderSummary['status'], BadgeVariant> = {
+  pending: 'warning',
+  processing: 'primary',
+  shipped: 'secondary',
+  delivered: 'success',
+  cancelled: 'error',
+}
+
+interface OrderCardProps {
+  order: OrderSummary
+  onView?: (id: string) => void
+}
+
+export default function OrderCard({ order, onView }: OrderCardProps) {
   return (
-    <div className="bg-white dark:bg-darksurface rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between gap-4">
-      <div>
-        <div className="flex items-center gap-3 mb-2">
-          <h3 className="font-semibold">{o.id}</h3>
-          <Badge variant={statusVariant}>{o.status}</Badge>
+    <div className="bg-white dark:bg-darksurface border border-gray-100 dark:border-gray-700/50 rounded-2xl p-5 hover:shadow-md transition-all duration-200">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <FiPackage className="text-primary" size={18} />
+          </div>
+          <div>
+            <p className="font-semibold text-gray-900 dark:text-white text-sm">Order #{order.id}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{order.date}</p>
+          </div>
         </div>
-        <p className="text-sm text-gray-500">Placed on {o.date} · {o.items} items</p>
-        <p className="text-lg font-bold mt-1">${o.total}</p>
+        <Badge variant={statusVariant[order.status]}>
+          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+        </Badge>
       </div>
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm"><FiTruck className="mr-1" /> Track</Button>
-        <Button size="sm">View Details</Button>
+
+      <div className="space-y-1.5 mb-4">
+        {order.items.map((item, i) => (
+          <div key={i} className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+            <span className="truncate">{item.name} × {item.qty}</span>
+            <span className="shrink-0 ml-2">${(item.price * item.qty).toFixed(2)}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
+        <span className="text-sm font-semibold text-gray-900 dark:text-white">
+          Total: ${order.total.toFixed(2)}
+        </span>
+        {onView && (
+          <button
+            onClick={() => onView(order.id)}
+            className="flex items-center gap-1 text-xs text-primary font-medium hover:underline"
+          >
+            View Details <FiChevronRight size={14} />
+          </button>
+        )}
       </div>
     </div>
   )
 }
-
-export default OrderCard

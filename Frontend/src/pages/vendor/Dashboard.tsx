@@ -1,35 +1,150 @@
+import { motion } from 'framer-motion'
+import { FiDollarSign, FiPackage, FiShoppingBag, FiStar, FiArrowUp, FiArrowDown } from 'react-icons/fi'
 import Card from '../../components/ui/Card'
-import { FiDollarSign, FiShoppingBag, FiPackage, FiUsers } from 'react-icons/fi'
+import Badge from '../../components/ui/Badge'
+import { cn } from '../../lib/utils'
 
-const VendorDashboard = () => {
-  const stats = [
-    { icon: FiDollarSign, label: 'Revenue', value: '$12,450', color: 'text-success' },
-    { icon: FiShoppingBag, label: 'Orders', value: '156', color: 'text-primary' },
-    { icon: FiPackage, label: 'Products', value: '48', color: 'text-secondary' },
-    { icon: FiUsers, label: 'Customers', value: '234', color: 'text-accent' },
-  ]
+const stats = [
+  { label: 'Total Revenue', value: '$12,456', change: '+12.5%', up: true, icon: FiDollarSign },
+  { label: 'Total Orders', value: '348', change: '+8.2%', up: true, icon: FiShoppingBag },
+  { label: 'Products', value: '64', change: '+3', up: true, icon: FiPackage },
+  { label: 'Avg Rating', value: '4.8', change: '-0.1', up: false, icon: FiStar },
+]
+
+const recentOrders = [
+  { id: 'ORD-048', customer: 'Alice W.', product: 'Headphones Pro', amount: '$199.99', status: 'processing', date: 'Jan 25' },
+  { id: 'ORD-047', customer: 'Bob M.', product: 'Smart Speaker', amount: '$89.99', status: 'shipped', date: 'Jan 24' },
+  { id: 'ORD-046', customer: 'Carol S.', product: 'USB-C Hub', amount: '$49.99', status: 'delivered', date: 'Jan 23' },
+  { id: 'ORD-045', customer: 'David R.', product: 'Phone Stand', amount: '$24.99', status: 'delivered', date: 'Jan 22' },
+  { id: 'ORD-044', customer: 'Eve L.', product: 'Cable Set', amount: '$19.99', status: 'cancelled', date: 'Jan 21' },
+]
+
+const statusMap: Record<string, 'primary' | 'secondary' | 'success' | 'error'> = {
+  processing: 'primary',
+  shipped: 'secondary',
+  delivered: 'success',
+  cancelled: 'error',
+}
+
+const chartBars = [40, 65, 55, 80, 70, 90, 75, 95, 85, 100, 88, 92]
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+export default function VendorDashboard() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Vendor Dashboard</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map(stat => (
-          <Card key={stat.label} hover={false}>
-            <div className="flex items-center gap-3">
-              <div className={`p-3 rounded-xl bg-gray-100 dark:bg-gray-700 ${stat.color}`}><stat.icon /></div>
-              <div>
-                <p className="text-sm text-gray-500">{stat.label}</p>
-                <p className="text-2xl font-bold">{stat.value}</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h1 className="text-4xl font-bold text-gradient mb-2">Dashboard</h1>
+        <p className="text-surface-500">Welcome back! Here's what's happening with your store.</p>
+      </motion.div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+        {stats.map(({ label, value, change, up, icon: Icon }, i) => (
+          <motion.div
+            key={label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            <Card glass padding="lg" className="h-full">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-mesh flex items-center justify-center neon-glow">
+                  <Icon size={24} className="text-white" />
+                </div>
+                <span className={cn('flex items-center gap-1 text-xs font-semibold', up ? 'text-success' : 'text-accent')}>
+                  {up ? <FiArrowUp size={12} /> : <FiArrowDown size={12} />}
+                  {change}
+                </span>
               </div>
-            </div>
-          </Card>
+              <p className="text-3xl font-extrabold text-gradient">{value}</p>
+              <p className="text-xs text-surface-500 mt-1">{label}</p>
+            </Card>
+          </motion.div>
         ))}
       </div>
-      <div className="grid lg:grid-cols-2 gap-6">
-        <Card><h3 className="font-semibold mb-4">Revenue Chart</h3><div className="h-48 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center text-gray-400">Chart placeholder</div></Card>
-        <Card><h3 className="font-semibold mb-4">Recent Orders</h3><div className="space-y-3">{[1,2,3].map(i => <div key={i} className="flex justify-between text-sm"><span>Order #12{i}</span><span className="text-primary">$89.97</span></div>)}</div></Card>
-      </div>
+
+      {/* Revenue Chart */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <Card glass padding="lg">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-gradient">Revenue Overview</h2>
+              <p className="text-sm text-surface-500">Last 12 months</p>
+            </div>
+            <span className="text-3xl font-extrabold text-gradient">$12,456</span>
+          </div>
+          {/* Chart */}
+          <div className="flex items-end gap-2 h-48">
+            {chartBars.map((h, i) => (
+              <motion.div
+                key={i}
+                initial={{ height: 0 }}
+                animate={{ height: `${h}%` }}
+                transition={{ delay: 0.5 + i * 0.05 }}
+                className="flex-1 flex flex-col items-center gap-2"
+              >
+                <div className="w-full rounded-t-lg bg-gradient-mesh opacity-80 hover:opacity-100 transition-opacity cursor-pointer neon-glow" />
+                <span className="text-[10px] text-surface-500">{months[i]}</span>
+              </motion.div>
+            ))}
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* Recent Orders */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
+        <Card glass padding="none" className="overflow-hidden">
+          <div className="flex items-center justify-between p-6 border-b border-white/10">
+            <h2 className="text-lg font-bold text-gradient">Recent Orders</h2>
+            <button className="text-sm text-primary hover:underline font-semibold">View all</button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-background-light/30">
+                <tr>
+                  {['Order', 'Customer', 'Product', 'Amount', 'Status', 'Date'].map(h => (
+                    <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-surface-500 uppercase tracking-wide">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {recentOrders.map((order, i) => (
+                  <motion.tr
+                    key={order.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.7 + i * 0.05 }}
+                    className="hover:bg-white/5 transition-colors"
+                  >
+                    <td className="px-5 py-3.5 text-sm font-medium text-surface-200">{order.id}</td>
+                    <td className="px-5 py-3.5 text-sm text-surface-400">{order.customer}</td>
+                    <td className="px-5 py-3.5 text-sm text-surface-400 max-w-[140px] truncate">{order.product}</td>
+                    <td className="px-5 py-3.5 text-sm font-semibold text-surface-200">{order.amount}</td>
+                    <td className="px-5 py-3.5">
+                      <Badge variant={statusMap[order.status]} dot>
+                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      </Badge>
+                    </td>
+                    <td className="px-5 py-3.5 text-sm text-surface-500">{order.date}</td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </motion.div>
     </div>
   )
 }
-
-export default VendorDashboard

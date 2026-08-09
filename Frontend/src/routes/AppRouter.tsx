@@ -17,6 +17,8 @@ import OrderHistory from '../pages/customer/OrderHistory'
 import Wishlist from '../pages/customer/Wishlist'
 import AddressManagement from '../pages/customer/AddressManagement'
 import Profile from '../pages/customer/Profile'
+import About from '../pages/customer/About'
+import Categories from '../pages/customer/Categories'
 
 // Vendor
 import VendorDashboard from '../pages/vendor/Dashboard'
@@ -34,6 +36,7 @@ import CategoryManagement from '../pages/admin/CategoryManagement'
 import PlatformAnalytics from '../pages/admin/PlatformAnalytics'
 import OrderMonitoring from '../pages/admin/OrderMonitoring'
 
+
 const AppRouter = () => {
   return (
     <Routes>
@@ -42,12 +45,14 @@ const AppRouter = () => {
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<ProductListing />} />
         <Route path="/product/:id" element={<ProductDetail />} />
+        <Route path="/categories" element={<Categories />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/orders" element={<OrderHistory />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/addresses" element={<AddressManagement />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -14,6 +14,7 @@ import reviewRoutes from './routes/review.routes.js';
 import addressRoutes from './routes/address.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
+import userRoutes from './routes/user.routes.js';
 
 // Load environment variables
 dotenv.config();
@@ -50,6 +51,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/addresses', addressRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/users', userRoutes);
 
 // Root endpoint for testing
 app.get('/', (req, res) => {

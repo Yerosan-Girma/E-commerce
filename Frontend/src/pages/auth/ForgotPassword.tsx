@@ -1,40 +1,87 @@
-import { motion } from 'framer-motion'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FiMail, FiArrowLeft } from 'react-icons/fi'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import AnimatedBackground from '../../components/ui/AnimatedBackground'
-import { useState } from 'react'
+import { FiMail, FiArrowLeft, FiCheckCircle } from 'react-icons/fi'
 
-const ForgotPassword = () => {
+export default function ForgotPassword() {
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) { setError('Email is required'); return }
+    if (!/\S+@\S+\.\S+/.test(email)) { setError('Enter a valid email'); return }
+    setError('')
+    setLoading(true)
+    await new Promise(r => setTimeout(r, 1500))
+    setLoading(false)
+    setSent(true)
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden p-4">
+    <div className="min-h-screen flex items-center justify-center relative px-4 py-12">
       <AnimatedBackground />
-      <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="w-full max-w-md relative z-10">
-        <div className="glass-card p-8 rounded-2xl text-center">
-          {!sent ? (
-            <>
-              <h1 className="text-2xl font-bold mb-4">Forgot Password</h1>
-              <p className="text-gray-500 mb-6">Enter your email and we'll send you a reset link.</p>
-              <div className="relative mb-4"><FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" /><Input placeholder="Email address" className="pl-10" /></div>
-              <Button className="w-full" onClick={() => setSent(true)}>Send Reset Link</Button>
-            </>
-          ) : (
-            <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
-              <div className="w-16 h-16 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiMail className="text-success text-2xl" />
+      <div className="w-full max-w-md z-10">
+        <div className="glass-card p-8">
+          {sent ? (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
+                <FiCheckCircle className="text-success" size={32} />
               </div>
-              <h2 className="text-xl font-semibold mb-2">Check Your Email</h2>
-              <p className="text-gray-500">We've sent a password reset link to your email.</p>
-            </motion.div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Check your email</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                We've sent password reset instructions to <strong>{email}</strong>
+              </p>
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 text-sm text-primary font-semibold hover:underline"
+              >
+                <FiArrowLeft size={14} /> Back to Sign In
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div className="text-center mb-8">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <FiMail className="text-white" size={24} />
+                </div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reset password</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Enter your email to receive reset instructions
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <Input
+                  label="Email address"
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  icon={<FiMail size={16} />}
+                  error={error}
+                />
+                <Button type="submit" loading={loading} fullWidth size="lg">
+                  Send Reset Link
+                </Button>
+              </form>
+
+              <div className="mt-6 text-center">
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors"
+                >
+                  <FiArrowLeft size={14} /> Back to Sign In
+                </Link>
+              </div>
+            </>
           )}
-          <Link to="/login" className="inline-flex items-center gap-1 text-sm text-primary mt-6 hover:underline"><FiArrowLeft /> Back to Login</Link>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }
-
-export default ForgotPassword

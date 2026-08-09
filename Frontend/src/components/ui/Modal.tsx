@@ -1,43 +1,60 @@
-import { motion, AnimatePresence } from 'framer-motion'
-import { ReactNode } from 'react'
+import { useEffect } from 'react'
+import type { ReactNode } from 'react'
 import { FiX } from 'react-icons/fi'
 
 interface ModalProps {
-  isOpen: boolean
+  open: boolean
   onClose: () => void
-  children: ReactNode
   title?: string
+  children: ReactNode
+  size?: 'sm' | 'md' | 'lg' | 'xl'
 }
 
-const Modal = ({ isOpen, onClose, children, title }: ModalProps) => {
+const sizeClasses = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-2xl',
+}
+
+export default function Modal({ open, onClose, title, children, size = 'md' }: ModalProps) {
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
+  if (!open) return null
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onClick={onClose}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-darksurface rounded-2xl shadow-2xl w-full max-w-md p-6"
-          >
-            <div className="flex justify-between items-center mb-4">
-              {title && <h3 className="text-lg font-semibold">{title}</h3>}
-              <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"><FiX /></button>
-            </div>
-            {children}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div
+        className={[
+          'relative w-full glass-card z-10 animate-[slideUp_0.2s_ease-out]',
+          sizeClasses[size],
+        ].join(' ')}
+        onClick={e => e.stopPropagation()}
+      >
+        {(title || true) && (
+          <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
+            {title && <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>}
+            <button
+              onClick={onClose}
+              className="ml-auto p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <FiX size={18} />
+            </button>
+          </div>
+        )}
+        <div className="p-6">{children}</div>
+      </div>
+    </div>
   )
 }
-
-export default Modal

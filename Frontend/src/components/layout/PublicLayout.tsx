@@ -3,11 +3,11 @@ import Navbar from './Navbar'
 import Footer from './Footer'
 import MobileBottomNav from './MobileBottomNav'
 
-const PublicLayout = () => {
+export default function PublicLayout() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-surface dark:bg-darkbg">
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 pb-16 sm:pb-0">
         <Outlet />
       </main>
       <Footer />
@@ -15,5 +15,3 @@ const PublicLayout = () => {
     </div>
   )
 }
-
-export default PublicLayout

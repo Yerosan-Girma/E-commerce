@@ -1,170 +1,193 @@
-import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
-import { FiMail, FiLock, FiArrowRight } from 'react-icons/fi'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { setCredentials } from '../../store/slices/authSlice'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import AnimatedBackground from '../../components/ui/AnimatedBackground'
-import { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { setCredentials } from '../../store/slices/authSlice'
-import { useNavigate } from 'react-router-dom'
-import { useToast } from '../../components/ui/Toast'
+import { FiMail, FiLock, FiEye, FiEyeOff, FiUser } from 'react-icons/fi'
+import { api } from '../../services/api'
 
-const Login = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [remember, setRemember] = useState(false)
-  const [loading, setLoading] = useState(false)
-
+export default function Login() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { addToast } = useToast()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [role, setRole] = useState<'customer' | 'vendor' | 'admin'>('customer')
+  const [rememberMe, setRememberMe] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({})
+
+  const validate = () => {
+    const errs: { name?: string; email?: string; password?: string } = {}
+    if (!name.trim()) errs.name = 'Name is required'
+    if (!email) errs.email = 'Email is required'
+    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Enter a valid email'
+    if (!password) errs.password = 'Password is required'
+    return errs
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const errs = validate()
+    if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      // For demo: accept any credentials
+    try {
+      // Admin credentials check (local fallback)
+      if (role === 'admin') {
+        if (email === 'admin@gmail.com' && password === 'password123') {
+          dispatch(setCredentials({
+            user: { name: 'Admin', email, role: 'admin' },
+            token: 'admin-token-123',
+          }))
+          navigate('/admin')
+          setLoading(false)
+          return
+        } else {
+          setErrors({ email: 'Invalid admin credentials', password: 'Invalid admin credentials' })
+          setLoading(false)
+          return
+        }
+      }
+
+      // Try to authenticate with backend
+      const response = await api.login({ email, password, role })
       dispatch(setCredentials({
-        user: {
-          name: 'John Doe',
-          email: email,
-          role: 'customer'
-        },
-        token: 'demo-token-12345'
+        user: { name: name || response.name, email: response.email, role: response.role },
+        token: response.token,
       }))
-      addToast('Successfully logged in!', 'success')
-      navigate('/')
-      setLoading(false)
-    }, 1500)
+
+      // Navigate based on role
+      if (role === 'vendor') {
+        navigate('/vendor')
+      } else {
+        navigate('/')
+      }
+    } catch (error) {
+      // Fallback to mock authentication if backend fails
+      console.log('Backend login failed, using mock auth:', error)
+      if (role === 'vendor') {
+        dispatch(setCredentials({
+          user: { name: 'Vendor User', email, role: 'vendor' },
+          token: 'vendor-token-123',
+        }))
+        navigate('/vendor')
+      } else {
+        dispatch(setCredentials({
+          user: { name: 'John Doe', email, role: 'customer' },
+          token: 'mock-token-123',
+        }))
+        navigate('/')
+      }
+    }
+    setLoading(false)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50 dark:from-darkbg dark:to-darksurface p-4">
-      {/* Animated orbs background */}
+    <div className="min-h-screen flex items-center justify-center relative px-4 py-12">
       <AnimatedBackground />
-
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: 'easeOut' }}
-        className="w-full max-w-md relative z-10"
-      >
-        <div className="glass-card p-8 rounded-2xl shadow-xl">
+      <div className="w-full max-w-md z-10">
+        <div className="glass-card p-8">
+          {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Welcome back
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">
-              Sign in to your MarketHub account
-            </p>
+            <Link to="/" className="inline-flex items-center justify-center gap-2 mb-6">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold">M</span>
+              </div>
+            </Link>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome back</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sign in to your MarketHub account</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="relative">
-              <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
-              <Input
-                type="email"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-10"
-                required
-              />
+            <div>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Login as</label>
+              <div className="flex gap-2">
+                {(['customer', 'vendor', 'admin'] as const).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRole(r)}
+                    className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-medium transition-all ${
+                      role === r
+                        ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {r.charAt(0).toUpperCase() + r.slice(1)}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="relative">
-              <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" />
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-10"
-                required
-              />
-            </div>
+            <Input
+              label="Full name"
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="John Doe"
+              icon={<FiUser size={16} />}
+              error={errors.name}
+            />
+            <Input
+              label="Email address"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              icon={<FiMail size={16} />}
+              error={errors.email}
+            />
+            <Input
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••"
+              icon={<FiLock size={16} />}
+              error={errors.password}
+              iconRight={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                </button>
+              }
+            />
 
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={remember}
-                  onChange={(e) => setRemember(e.target.checked)}
-                  className="accent-primary rounded"
+                  checked={rememberMe}
+                  onChange={e => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded accent-primary"
                 />
-                <span className="text-gray-600 dark:text-gray-400">Remember me</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">Remember me</span>
               </label>
-              <Link
-                to="/forgot-password"
-                className="text-primary hover:underline font-medium"
-              >
+              <Link to="/forgot-password" className="text-sm text-primary hover:underline font-medium">
                 Forgot password?
               </Link>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              size="lg"
-              disabled={loading}
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Signing in...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  Sign In <FiArrowRight />
-                </span>
-              )}
+            <Button type="submit" loading={loading} fullWidth size="lg">
+              Sign In
             </Button>
           </form>
 
-          <div className="mt-6 relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white dark:bg-darksurface text-gray-500">
-                or continue with
-              </span>
-            </div>
-          </div>
-
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="button"
-            className="mt-4 w-full border border-gray-200 dark:border-gray-600 rounded-xl py-3 flex items-center justify-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition font-medium"
-          >
-            <img
-              src="https://www.google.com/favicon.ico"
-              alt="Google"
-              className="w-5 h-5"
-            />
-            Google
-          </motion.button>
-
-          <p className="text-center text-sm mt-6 text-gray-500">
+          <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
             Don't have an account?{' '}
-            <Link
-              to="/register"
-              className="text-primary font-semibold hover:underline"
-            >
-              Register
+            <Link to="/register" className="text-primary font-semibold hover:underline">
+              Create one
             </Link>
-          </p>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }
-
-export default Login

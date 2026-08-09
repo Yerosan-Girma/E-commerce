@@ -1,52 +1,123 @@
-import { FiFacebook, FiTwitter, FiInstagram, FiYoutube } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
+import { FiTwitter, FiInstagram, FiFacebook, FiLinkedin, FiMail } from 'react-icons/fi'
+import { useState } from 'react'
 
-const Footer = () => {
+const links = {
+  Shop: [
+    { label: 'All Products', to: '/products' },
+    { label: 'New Arrivals', to: '/products?sort=new' },
+    { label: 'Best Sellers', to: '/products?sort=popular' },
+    { label: 'Deals & Offers', to: '/products?filter=deals' },
+  ],
+  Account: [
+    { label: 'My Profile', to: '/profile' },
+    { label: 'My Orders', to: '/orders' },
+    { label: 'Wishlist', to: '/wishlist' },
+    { label: 'Addresses', to: '/addresses' },
+  ],
+  Sellers: [
+    { label: 'Become a Seller', to: '/register' },
+    { label: 'Seller Dashboard', to: '/vendor' },
+    { label: 'Seller Guidelines', to: '/' },
+  ],
+  Support: [
+    { label: 'Help Center', to: '/' },
+    { label: 'Privacy Policy', to: '/' },
+    { label: 'Terms of Service', to: '/' },
+    { label: 'Contact Us', to: '/' },
+  ],
+}
+
+const socials = [
+  { Icon: FiTwitter, href: '#', label: 'Twitter' },
+  { Icon: FiInstagram, href: '#', label: 'Instagram' },
+  { Icon: FiFacebook, href: '#', label: 'Facebook' },
+  { Icon: FiLinkedin, href: '#', label: 'LinkedIn' },
+]
+
+export default function Footer() {
+  const [email, setEmail] = useState('')
+
   return (
-    <footer className="bg-white dark:bg-darksurface border-t border-gray-200 dark:border-gray-700 mt-20">
-      <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
-        <div>
-          <h3 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">MarketHub</h3>
-          <p className="text-sm text-gray-500 mt-2">Your global multi‑vendor marketplace.</p>
-          <div className="flex gap-3 mt-4">
-            <FiFacebook className="text-gray-400 hover:text-primary cursor-pointer" />
-            <FiTwitter className="text-gray-400 hover:text-primary cursor-pointer" />
-            <FiInstagram className="text-gray-400 hover:text-primary cursor-pointer" />
-            <FiYoutube className="text-gray-400 hover:text-error cursor-pointer" />
+    <footer className="bg-gray-900 dark:bg-darkbg text-gray-300 mt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-10">
+          {/* Brand */}
+          <div className="lg:col-span-2">
+            <Link to="/" className="flex items-center gap-2 mb-4">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md">
+                <span className="text-white font-bold">M</span>
+              </div>
+              <span className="font-bold text-xl text-white">
+                Market<span className="text-primary">Hub</span>
+              </span>
+            </Link>
+            <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+              Your trusted multi-vendor marketplace. Discover thousands of products from verified sellers worldwide.
+            </p>
+            {/* Newsletter */}
+            <div>
+              <p className="text-sm font-semibold text-white mb-2">Stay in the loop</p>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={15} />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm bg-gray-800 border border-gray-700 text-white placeholder:text-gray-500 outline-none focus:border-primary/60 transition-colors"
+                  />
+                </div>
+                <button
+                  onClick={() => setEmail('')}
+                  className="px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-600 transition-colors shrink-0"
+                >
+                  Subscribe
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Links */}
+          {Object.entries(links).map(([category, items]) => (
+            <div key={category}>
+              <h3 className="text-sm font-semibold text-white mb-4">{category}</h3>
+              <ul className="space-y-3">
+                {items.map(item => (
+                  <li key={item.label}>
+                    <Link
+                      to={item.to}
+                      className="text-sm text-gray-400 hover:text-white transition-colors"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom */}
+        <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-gray-500">
+            © {new Date().getFullYear()} MarketHub. All rights reserved.
+          </p>
+          <div className="flex items-center gap-3">
+            {socials.map(({ Icon, href, label }) => (
+              <a
+                key={label}
+                href={href}
+                aria-label={label}
+                className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all duration-200"
+              >
+                <Icon size={15} />
+              </a>
+            ))}
           </div>
         </div>
-        <div>
-          <h4 className="font-semibold mb-3">Customer Service</h4>
-          <ul className="space-y-2 text-sm text-gray-500">
-            <li><Link to="/">Help Center</Link></li>
-            <li><Link to="/">Returns</Link></li>
-            <li><Link to="/">Shipping Info</Link></li>
-            <li><Link to="/">Contact Us</Link></li>
-          </ul>
-        </div>
-        <div>
-          <h4 className="font-semibold mb-3">Company</h4>
-          <ul className="space-y-2 text-sm text-gray-500">
-            <li><Link to="/">About Us</Link></li>
-            <li><Link to="/">Careers</Link></li>
-            <li><Link to="/">Press</Link></li>
-            <li><Link to="/">Blog</Link></li>
-          </ul>
-        </div>
-        <div>
-          <h4 className="font-semibold mb-3">Newsletter</h4>
-          <p className="text-sm text-gray-500 mb-3">Subscribe for deals and updates.</p>
-          <div className="flex">
-            <input placeholder="your@email.com" className="flex-1 rounded-l-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary" />
-            <button className="bg-primary text-white px-4 rounded-r-xl font-medium text-sm">Subscribe</button>
-          </div>
-        </div>
-      </div>
-      <div className="border-t border-gray-200 dark:border-gray-700 py-4 text-center text-sm text-gray-400">
-        © 2025 MarketHub. All rights reserved.
       </div>
     </footer>
   )
 }
-
-export default Footer

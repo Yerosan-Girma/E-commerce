@@ -1,57 +1,225 @@
 import { useSelector, useDispatch } from 'react-redux'
-import { RootState } from '../../store'
-import { removeFromCart, updateQuantity } from '../../store/slices/cartSlice'
-import { FiTrash2, FiArrowRight } from 'react-icons/fi'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import type { RootState } from '../../store'
+import { removeFromCart, updateQuantity, clearCart } from '../../store/slices/cartSlice'
 import { Link } from 'react-router-dom'
 import Button from '../../components/ui/Button'
+import Card from '../../components/ui/Card'
+import { FiTrash2, FiShoppingBag, FiArrowLeft, FiMinus, FiPlus, FiCheck } from 'react-icons/fi'
+import { cn } from '../../lib/utils'
 
-const Cart = () => {
-  const cartItems = useSelector((state: RootState) => state.cart.items)
+export default function Cart() {
   const dispatch = useDispatch()
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const shipping = 5.99
-  const tax = subtotal * 0.08
+  const navigate = useNavigate()
+  const user = useSelector((state: RootState) => state.auth.user)
+  const items = useSelector((state: RootState) => state.cart.items)
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login')
+    }
+  }, [user, navigate])
+
+  const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0)
+  const shipping = subtotal > 50 ? 0 : 9.99
+  const total = subtotal + shipping
+  const freeShippingProgress = Math.min((subtotal / 50) * 100, 100)
+
+  if (items.length === 0) {
+    return (
+      <div className="min-h-screen pt-24 px-4 sm:px-6 lg:px-8 pb-12">
+        <div className="max-w-2xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-32 h-32 rounded-full glass flex items-center justify-center mx-auto mb-8 neon-glow"
+          >
+            <FiShoppingBag className="text-surface-400" size={48} />
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-3xl font-bold text-gradient mb-4"
+          >
+            Your cart is empty
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-surface-500 mb-8 text-lg"
+          >
+            Add some products to get started!
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Link to="/products">
+              <Button size="lg" className="neon-glow gap-2">
+                <FiArrowLeft size={18} /> Continue Shopping
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Shopping Cart ({cartItems.length})</h1>
-      {cartItems.length === 0 ? (
-        <div className="text-center py-20"><p className="text-gray-500">Your cart is empty.</p></div>
-      ) : (
-        <div className="grid lg:grid-cols-3 gap-8">
+    <div className="min-h-screen pt-24 px-4 sm:px-6 lg:px-8 pb-12">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between mb-8"
+        >
+          <div>
+            <h1 className="text-4xl font-bold text-gradient mb-2">Shopping Cart</h1>
+            <p className="text-surface-500">{items.length} items in your cart</p>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => dispatch(clearCart())}
+            className="flex items-center gap-2 text-sm text-accent hover:text-accent/80 transition-colors"
+          >
+            <FiTrash2 size={16} /> Clear all
+          </motion.button>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {cartItems.map(item => (
-              <div key={item.id} className="flex gap-4 bg-white dark:bg-darksurface p-4 rounded-xl border">
-                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center text-2xl">📱</div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">{item.name}</h3>
-                  <p className="text-primary font-bold">${item.price}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <select value={item.quantity} onChange={e => dispatch(updateQuantity({ id: item.id, quantity: parseInt(e.target.value) }))} className="border rounded-lg px-2 py-1 text-sm">
-                      {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
-                    </select>
-                    <button onClick={() => dispatch(removeFromCart(item.id))} className="text-error"><FiTrash2 /></button>
+            <AnimatePresence mode="popLayout">
+              {items.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Card hover glass padding="md" className="flex gap-4">
+                    <div className="w-24 h-24 rounded-xl bg-background-light/50 flex items-center justify-center shrink-0 overflow-hidden">
+                      {item.image ? (
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-4xl">🛍️</span>
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-surface-200 text-base line-clamp-2 mb-2">{item.name}</h3>
+                      <p className="text-xl font-bold text-gradient mb-4">${(item.price * item.quantity).toFixed(2)}</p>
+
+                      <div className="flex items-center justify-between">
+                        {/* Quantity Control */}
+                        <div className="flex items-center glass rounded-xl overflow-hidden">
+                          <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => {
+                              if (item.quantity <= 1) {
+                                dispatch(removeFromCart(item.id))
+                              } else {
+                                dispatch(updateQuantity({ id: item.id, quantity: item.quantity - 1 }))
+                              }
+                            }}
+                            className="w-10 h-10 flex items-center justify-center text-surface-400 hover:text-white hover:bg-white/5 transition-colors font-bold"
+                          >
+                            <FiMinus size={16} />
+                          </motion.button>
+                          <span className="w-12 text-center text-sm font-bold text-surface-200">{item.quantity}</span>
+                          <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => dispatch(updateQuantity({ id: item.id, quantity: item.quantity + 1 }))}
+                            className="w-10 h-10 flex items-center justify-center text-surface-400 hover:text-white hover:bg-white/5 transition-colors font-bold"
+                          >
+                            <FiPlus size={16} />
+                          </motion.button>
+                        </div>
+
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => dispatch(removeFromCart(item.id))}
+                          className="p-2 rounded-xl text-surface-500 hover:text-accent hover:bg-accent/10 transition-all"
+                        >
+                          <FiTrash2 size={18} />
+                        </motion.button>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+
+          {/* Order Summary */}
+          <div className="lg:col-span-1">
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <Card glass padding="lg" className="sticky top-24">
+                <h2 className="text-xl font-bold text-gradient mb-6">Order Summary</h2>
+                
+                {/* Free Shipping Progress */}
+                {shipping > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between text-sm mb-2">
+                      <span className="text-surface-400">Free shipping progress</span>
+                      <span className="text-primary font-semibold">${(50 - subtotal).toFixed(2)} away</span>
+                    </div>
+                    <div className="h-2 bg-background-light rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${freeShippingProgress}%` }}
+                        transition={{ duration: 0.5 }}
+                        className="h-full bg-gradient-mesh"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-4 mb-6 text-sm">
+                  <div className="flex justify-between text-surface-400">
+                    <span>Subtotal ({items.length} items)</span>
+                    <span className="text-surface-200">${subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-surface-400">
+                    <span>Shipping</span>
+                    <span className={cn(shipping === 0 ? 'text-success font-semibold' : 'text-surface-200')}>
+                      {shipping === 0 ? (
+                        <span className="flex items-center gap-1">
+                          <FiCheck size={14} /> FREE
+                        </span>
+                      ) : `$${shipping.toFixed(2)}`}
+                    </span>
+                  </div>
+                  <div className="border-t border-white/10 pt-4 flex justify-between">
+                    <span className="text-lg font-bold text-surface-200">Total</span>
+                    <span className="text-2xl font-bold text-gradient">${total.toFixed(2)}</span>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-          <div className="bg-white dark:bg-darksurface p-6 rounded-2xl border h-fit">
-            <h2 className="font-semibold text-lg mb-4">Order Summary</h2>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span>Shipping</span><span>${shipping.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span>Tax</span><span>${tax.toFixed(2)}</span></div>
-              <hr className="my-2" />
-              <div className="flex justify-between font-bold text-lg"><span>Total</span><span>${(subtotal+shipping+tax).toFixed(2)}</span></div>
-            </div>
-            <input placeholder="Coupon code" className="w-full mt-4 border rounded-xl px-3 py-2 text-sm" />
-            <Link to="/checkout"><Button className="w-full mt-4"><FiArrowRight className="mr-2" /> Proceed to Checkout</Button></Link>
+
+                <Link to="/checkout">
+                  <Button fullWidth size="lg" className="neon-glow">
+                    Proceed to Checkout
+                  </Button>
+                </Link>
+                <Link to="/products" className="block text-center mt-4 text-sm text-surface-500 hover:text-primary transition-colors">
+                  Continue Shopping
+                </Link>
+              </Card>
+            </motion.div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
-
-export default Cart
