@@ -13,6 +13,17 @@ export default {
           DEFAULT: '#0B0F19',
           light: '#151A26',
           lighter: '#1A2030',
+          dark: '#0B0F19',
+        },
+        darkbg: '#0B0F19',
+        darksurface: '#151A26',
+        success: {
+          DEFAULT: '#10B981',
+          light: '#34D399',
+        },
+        error: {
+          DEFAULT: '#EF4444',
+          light: '#F87171',
         },
         // Purple/blue neon gradients
         primary: {

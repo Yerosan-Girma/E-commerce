@@ -13,6 +13,12 @@ interface AuthState {
   token: string | null
 }
 
+function isValidJwt(token: string | null): boolean {
+  if (!token) return false
+  const parts = token.split('.')
+  return parts.length === 3 && parts.every(part => part.length > 0)
+}
+
 // Restore user from localStorage to survive page refreshes
 function loadStoredUser(): AuthUser | null {
   try {
@@ -23,9 +29,24 @@ function loadStoredUser(): AuthUser | null {
   }
 }
 
+function loadStoredToken(): string | null {
+  const token = localStorage.getItem('token')
+  if (!isValidJwt(token)) {
+    if (token) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+    }
+    return null
+  }
+  return token
+}
+
+const storedToken = loadStoredToken()
+const storedUser = storedToken ? loadStoredUser() : null
+
 const initialState: AuthState = {
-  user: loadStoredUser(),
-  token: localStorage.getItem('token'),
+  user: storedUser,
+  token: storedToken,
 }
 
 const authSlice = createSlice({

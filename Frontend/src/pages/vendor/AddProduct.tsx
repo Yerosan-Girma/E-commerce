@@ -111,7 +111,7 @@ export default function AddProduct() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card glass padding="lg" className="border border-white/5 shadow-2xl relative overflow-hidden">
+          <Card glass padding="lg" animated={false} className="border border-white/5 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
@@ -166,7 +166,7 @@ export default function AddProduct() {
                       {loadingCategories ? 'Loading categories...' : 'Select product category'}
                     </option>
                     {dbCategories.map(c => (
-                      <option key={c._id} value={c._id} className="bg-background-dark text-white">
+                      <option key={c._id} value={c._id} className="bg-background-light text-white">
                         {c.name}
                       </option>
                     ))}
@@ -190,7 +190,7 @@ export default function AddProduct() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card glass padding="lg" className="border border-white/5 shadow-2xl relative overflow-hidden">
+          <Card glass padding="lg" animated={false} className="border border-white/5 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-full blur-3xl pointer-events-none" />
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
@@ -231,7 +231,7 @@ export default function AddProduct() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card glass padding="lg" className="border border-white/5 shadow-2xl relative overflow-hidden">
+          <Card glass padding="lg" animated={false} className="border border-white/5 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent">

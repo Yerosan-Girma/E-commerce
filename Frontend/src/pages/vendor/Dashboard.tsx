@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiDollarSign, FiPackage, FiShoppingBag, FiStar, FiArrowUp, FiArrowDown, FiRefreshCw, FiCalendar, FiClock } from 'react-icons/fi'
+import { FiDollarSign, FiPackage, FiShoppingBag, FiStar, FiArrowUp, FiArrowDown, FiRefreshCw, FiCalendar, FiClock, FiSettings } from 'react-icons/fi'
 import Card from '../../components/ui/Card'
 import Badge from '../../components/ui/Badge'
 import { cn } from '../../lib/utils'
@@ -23,6 +24,16 @@ interface AnalyticsData {
   ordersCount: number
   topProducts: { title: string; totalSold: number; revenue: number }[]
   topCustomers: { name: string; email: string; totalOrders: number; totalSpent: number }[]
+  storeSetupRequired?: boolean
+}
+
+const emptyAnalytics: AnalyticsData = {
+  totalRevenue: 0,
+  monthlyRevenue: [],
+  ordersCount: 0,
+  topProducts: [],
+  topCustomers: [],
+  storeSetupRequired: true,
 }
 
 interface OrderItem {
@@ -72,12 +83,28 @@ export default function VendorDashboard() {
     setLoading(true)
     setError(null)
     try {
-      const [analyticsData, ordersData] = await Promise.all([
-        api.getVendorAnalytics() as unknown as Promise<AnalyticsData>,
+      const [analyticsResult, ordersResult] = await Promise.allSettled([
+        api.getVendorAnalytics(),
         api.getVendorOrders(1, 5),
       ])
-      setAnalytics(analyticsData)
-      setRecentOrders((ordersData.data ?? []) as OrderItem[])
+
+      if (analyticsResult.status === 'fulfilled') {
+        setAnalytics(analyticsResult.value as unknown as AnalyticsData)
+      } else {
+        const err = analyticsResult.reason
+        const status = err && typeof err === 'object' && 'status' in err ? (err as { status: number }).status : 0
+        if (status === 404) {
+          setAnalytics(emptyAnalytics)
+        } else {
+          throw err instanceof Error ? err : new Error('Failed to load analytics')
+        }
+      }
+
+      if (ordersResult.status === 'fulfilled') {
+        setRecentOrders((ordersResult.value.data ?? []) as OrderItem[])
+      } else {
+        setRecentOrders([])
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to load dashboard data'
       setError(message)
@@ -96,7 +123,7 @@ export default function VendorDashboard() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <p className="text-accent text-lg font-semibold">{error}</p>
+        <p className="text-red-400 text-lg font-semibold">{error}</p>
         <button
           onClick={loadData}
           className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl hover:opacity-90 transition-all font-semibold shadow-lg shadow-primary/20"
@@ -106,6 +133,8 @@ export default function VendorDashboard() {
       </div>
     )
   }
+
+  const needsStoreSetup = analytics?.storeSetupRequired
 
   // Build chart bars from monthly revenue data (normalise to %)
   const monthlyData = Array(12).fill(0)
@@ -160,6 +189,27 @@ export default function VendorDashboard() {
 
   return (
     <div className="space-y-8">
+      {needsStoreSetup && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-amber-500/30 bg-amber-500/10"
+        >
+          <div>
+            <p className="text-amber-300 font-semibold">Complete your store setup</p>
+            <p className="text-sm text-surface-400 mt-1">
+              Create your store profile before adding products and receiving orders.
+            </p>
+          </div>
+          <Link
+            to="/vendor/store"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-secondary text-white text-sm font-semibold hover:opacity-90 transition-opacity shrink-0"
+          >
+            <FiSettings size={16} /> Set Up Store
+          </Link>
+        </motion.div>
+      )}
+
       {/* Welcome Banner Card */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -169,11 +219,11 @@ export default function VendorDashboard() {
         <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 z-10 relative">
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs text-primary font-bold uppercase tracking-wider bg-primary/10 w-fit px-3 py-1 rounded-full border border-primary/20">
-              <FiClock /> Store Status: Open
+            <div className="flex items-center gap-2 text-xs text-primary-300 font-bold uppercase tracking-wider bg-primary/10 w-fit px-3 py-1 rounded-full border border-primary/20">
+              <FiClock /> Store Status: {needsStoreSetup ? 'Setup Required' : 'Open'}
             </div>
-            <h1 className="text-4xl font-extrabold text-gradient">Hello, Partner!</h1>
-            <p className="text-surface-300 text-sm max-w-md">
+            <h1 className="text-4xl font-extrabold text-white">Hello, Partner!</h1>
+            <p className="text-surface-400 text-sm max-w-md">
               Here is what is happening with your storefront today. Review orders, products, and insights.
             </p>
           </div>
@@ -204,6 +254,7 @@ export default function VendorDashboard() {
             <Card
               glass
               padding="lg"
+              animated={false}
               className={cn(
                 'h-full border border-white/5 shadow-xl hover:border-white/10 transition-all duration-300',
                 glow
@@ -213,13 +264,13 @@ export default function VendorDashboard() {
                 <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br', color)}>
                   <Icon size={24} className={textColor} />
                 </div>
-                <span className={cn('flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider', up ? 'text-success' : 'text-accent')}>
+                <span className={cn('flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider', up ? 'text-emerald-400' : 'text-accent')}>
                   {up ? <FiArrowUp size={12} /> : <FiArrowDown size={12} />}
                   {change}
                 </span>
               </div>
-              <p className="text-3xl font-extrabold text-gradient">{value}</p>
-              <p className="text-xs text-surface-500 font-semibold mt-1.5">{label}</p>
+              <p className="text-3xl font-extrabold text-white">{value}</p>
+              <p className="text-xs text-surface-400 font-semibold mt-1.5">{label}</p>
             </Card>
           </motion.div>
         ))}
@@ -234,13 +285,13 @@ export default function VendorDashboard() {
           transition={{ delay: 0.4 }}
           className="lg:col-span-2"
         >
-          <Card glass padding="lg" className="border border-white/5 shadow-2xl h-full flex flex-col">
+          <Card glass padding="lg" animated={false} className="border border-white/5 shadow-2xl h-full flex flex-col">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-bold text-gradient">Revenue Trends</h2>
-                <p className="text-sm text-surface-500">Sales performance over the last 12 months</p>
+                <h2 className="text-lg font-bold text-white">Revenue Trends</h2>
+                <p className="text-sm text-surface-400">Sales performance over the last 12 months</p>
               </div>
-              <span className="text-2xl font-extrabold text-gradient bg-clip-text">
+              <span className="text-2xl font-extrabold text-primary">
                 Total: ${(analytics?.totalRevenue ?? 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
               </span>
             </div>
@@ -249,7 +300,7 @@ export default function VendorDashboard() {
               {chartBars.map((h, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-2 group relative">
                   {/* Tooltip on hover */}
-                  <div className="absolute bottom-full mb-2 bg-background-dark/95 border border-white/10 text-white text-[10px] px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none font-bold shadow-xl">
+                  <div className="absolute bottom-full mb-2 bg-background-light/95 border border-white/10 text-white text-[10px] px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none font-bold shadow-xl">
                     ${monthlyData[i].toFixed(2)}
                   </div>
                   <motion.div
@@ -271,9 +322,9 @@ export default function VendorDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Card glass padding="lg" className="border border-white/5 shadow-2xl h-full flex flex-col">
-            <h2 className="text-lg font-bold text-gradient mb-1">Top Products</h2>
-            <p className="text-sm text-surface-500 mb-6">Highest performing catalog items</p>
+          <Card glass padding="lg" animated={false} className="border border-white/5 shadow-2xl h-full flex flex-col">
+            <h2 className="text-lg font-bold text-white mb-1">Top Products</h2>
+            <p className="text-sm text-surface-400 mb-6">Highest performing catalog items</p>
 
             <div className="space-y-4 flex-1 flex flex-col justify-center">
               {analytics?.topProducts && analytics.topProducts.length > 0 ? (
@@ -302,15 +353,15 @@ export default function VendorDashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
       >
-        <Card glass padding="none" className="overflow-hidden border border-white/5 shadow-2xl">
-          <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/2">
+        <Card glass padding="none" animated={false} className="overflow-hidden border border-white/5 shadow-2xl">
+          <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/5">
             <div>
-              <h2 className="text-lg font-bold text-gradient">Recent Orders</h2>
-              <p className="text-xs text-surface-500 mt-0.5">Manage and view recent transactions</p>
+              <h2 className="text-lg font-bold text-white">Recent Orders</h2>
+              <p className="text-xs text-surface-400 mt-0.5">Manage and view recent transactions</p>
             </div>
           </div>
           {recentOrders.length === 0 ? (
-            <div className="text-center py-16 text-surface-500">No orders placed yet.</div>
+            <div className="text-center py-16 text-surface-400">No orders placed yet.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -339,7 +390,7 @@ export default function VendorDashboard() {
                       <td className="px-6 py-4 text-sm text-surface-300 max-w-[200px] truncate">
                         {order.orderItems?.[0]?.title ?? '—'}
                       </td>
-                      <td className="px-6 py-4 text-sm font-extrabold text-surface-100">
+                      <td className="px-6 py-4 text-sm font-extrabold text-white">
                         ${order.totalPrice.toFixed(2)}
                       </td>
                       <td className="px-6 py-4">

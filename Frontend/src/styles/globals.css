@@ -1,13 +1,20 @@
 @import "tailwindcss";
+@config "../../tailwind.config.js";
 
 @layer base {
+  :root {
+    --background: 222 47% 6%;
+    --border: 0 0% 100% / 0.1;
+    --surface-100: 220 14% 96%;
+  }
+
   * {
     border-color: hsl(var(--border));
   }
   
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--surface-100));
+    background-color: #0B0F19;
+    color: #F3F4F6;
     -webkit-font-smoothing: antialiased;
     font-family: 'Inter', system-ui, sans-serif;
     overflow-x: hidden;
@@ -51,10 +58,17 @@
   }
   
   .text-gradient {
+    color: #A5B4FC;
     background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #EC4899 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  @supports not (background-clip: text) {
+    .text-gradient {
+      -webkit-text-fill-color: currentColor;
+    }
   }
   
   .bg-gradient-mesh {

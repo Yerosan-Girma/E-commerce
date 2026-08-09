@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { setCredentials } from '../../store/slices/authSlice'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import AnimatedBackground from '../../components/ui/AnimatedBackground'
-import { FiMail, FiLock, FiEye, FiEyeOff, FiUser } from 'react-icons/fi'
+import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
 import { api } from '../../services/api'
 
 interface AuthResponse {
@@ -19,22 +19,32 @@ interface AuthResponse {
 export default function Login() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const [name, setName] = useState('')
+  const location = useLocation()
+  const redirectFrom = (location.state as { from?: string; requiredRole?: string } | null)?.from
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<'customer' | 'vendor' | 'admin'>('customer')
   const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({})
+  const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({})
 
   const validate = () => {
-    const errs: { name?: string; email?: string; password?: string } = {}
-    if (!name.trim()) errs.name = 'Name is required'
+    const errs: typeof errors = {}
     if (!email) errs.email = 'Email is required'
     else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Enter a valid email'
     if (!password) errs.password = 'Password is required'
     return errs
+  }
+
+  const navigateForRole = (userRole: AuthResponse['role']) => {
+    if (redirectFrom && redirectFrom.startsWith(`/${userRole === 'admin' ? 'admin' : userRole === 'vendor' ? 'vendor' : ''}`)) {
+      navigate(redirectFrom)
+      return
+    }
+    if (userRole === 'vendor') navigate('/vendor')
+    else if (userRole === 'admin') navigate('/admin')
+    else navigate('/')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,56 +52,46 @@ export default function Login() {
     const errs = validate()
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setLoading(true)
+    setErrors({})
 
     try {
-      // Admin credentials check (local fallback)
-      if (role === 'admin') {
-        if (email === 'admin@gmail.com' && password === 'password123') {
-          dispatch(setCredentials({
-            user: { name: 'Admin', email, role: 'admin' },
-            token: 'admin-token-123',
-          }))
-          navigate('/admin')
-          setLoading(false)
-          return
-        } else {
-          setErrors({ email: 'Invalid admin credentials', password: 'Invalid admin credentials' })
-          setLoading(false)
-          return
-        }
+      const response = await api.login({ email, password, role }) as unknown as AuthResponse
+
+      if (!response.token) {
+        setErrors({ form: 'Login failed — no auth token received from server.' })
+        setLoading(false)
+        return
       }
 
-      // Try to authenticate with backend
-      const response = await api.login({ email, password, role }) as unknown as AuthResponse
+      if (response.role !== role) {
+        setErrors({
+          form: `This account is registered as a ${response.role}. Please select "${response.role.charAt(0).toUpperCase() + response.role.slice(1)}" above and try again.`,
+        })
+        setLoading(false)
+        return
+      }
+
       dispatch(setCredentials({
-        user: { name: name || response.name, email: response.email, role: response.role },
+        user: {
+          _id: response._id,
+          name: response.name,
+          email: response.email,
+          role: response.role,
+        },
         token: response.token,
       }))
 
-      // Navigate based on role
-      if (role === 'vendor') {
-        navigate('/vendor')
-      } else {
-        navigate('/')
-      }
+      navigateForRole(response.role)
     } catch (error) {
-      // Fallback to mock authentication if backend fails
-      console.log('Backend login failed, using mock auth:', error)
-      if (role === 'vendor') {
-        dispatch(setCredentials({
-          user: { name: 'Vendor User', email, role: 'vendor' },
-          token: 'vendor-token-123',
-        }))
-        navigate('/vendor')
-      } else {
-        dispatch(setCredentials({
-          user: { name: 'John Doe', email, role: 'customer' },
-          token: 'mock-token-123',
-        }))
-        navigate('/')
-      }
+      const message = error instanceof Error ? error.message : 'Login failed'
+      setErrors({
+        form: message.includes('fetch')
+          ? 'Cannot reach the server. Start the backend on port 5000 and try again.'
+          : message,
+      })
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
@@ -111,6 +111,12 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {errors.form && (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                {errors.form}
+              </div>
+            )}
+
             <div>
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">Login as</label>
               <div className="flex gap-2">
@@ -132,20 +138,11 @@ export default function Login() {
             </div>
 
             <Input
-              label="Full name"
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="John Doe"
-              icon={<FiUser size={16} />}
-              error={errors.name}
-            />
-            <Input
               label="Email address"
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder={role === 'vendor' ? 'vendor@example.com' : role === 'admin' ? 'admin@example.com' : 'you@example.com'}
               icon={<FiMail size={16} />}
               error={errors.email}
             />
@@ -167,6 +164,12 @@ export default function Login() {
                 </button>
               }
             />
+
+            {role !== 'customer' && (
+              <p className="text-xs text-surface-500 rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+                Demo: <strong className="text-surface-300">{role}@example.com</strong> / password123
+              </p>
+            )}
 
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">

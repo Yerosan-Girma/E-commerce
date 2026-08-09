@@ -10,12 +10,21 @@ import asyncHandler from '../utils/asyncHandler.js';
 export const getVendorAnalytics = asyncHandler(async (req, res) => {
   const vendorId = req.user._id;
 
-  // Get vendor's store
+  // Get vendor's store — return empty analytics if not set up yet
   const store = await Store.findOne({ owner: vendorId });
   if (!store) {
-    const error = new Error('Store not found');
-    error.statusCode = 404;
-    throw error;
+    return res.status(200).json({
+      success: true,
+      message: 'Vendor analytics retrieved successfully',
+      data: {
+        totalRevenue: 0,
+        monthlyRevenue: [],
+        ordersCount: 0,
+        topProducts: [],
+        topCustomers: [],
+        storeSetupRequired: true,
+      },
+    });
   }
 
   // Get all products for this vendor's store (only _id needed)

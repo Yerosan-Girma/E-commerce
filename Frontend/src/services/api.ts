@@ -1,3 +1,6 @@
+import { store } from '../store'
+import { logout } from '../store/slices/authSlice'
+
 // Base URL — reads from Vite env var in production, falls back to localhost in dev
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000/api').replace(/\/$/, '')
 
@@ -72,6 +75,11 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
     const message = data?.message || `Request failed with status ${response.status}`
     const err = new Error(message) as Error & { status: number }
     err.status = response.status
+
+    if (response.status === 401 && !endpoint.startsWith('/auth/login') && !endpoint.startsWith('/auth/register')) {
+      store.dispatch(logout())
+    }
+
     throw err
   }
 
