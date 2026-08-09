@@ -1,18 +1,13 @@
-import type { ReactNode } from 'react'
+import { useId } from 'react'
+import type { InputHTMLAttributes, ReactNode } from 'react'
 import { cn } from '../../lib/utils'
 
-interface InputProps {
+interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string
   error?: string
   hint?: string
   icon?: ReactNode
   iconRight?: ReactNode
-  value?: string
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
-  placeholder?: string
-  type?: string
-  disabled?: boolean
-  className?: string
 }
 
 export default function Input({
@@ -27,8 +22,11 @@ export default function Input({
   type = 'text',
   disabled = false,
   className = '',
+  id,
+  ...props
 }: InputProps) {
-  const inputId = label?.toLowerCase().replace(/\s+/g, '-')
+  const generatedId = useId()
+  const inputId = id ?? generatedId
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -50,6 +48,7 @@ export default function Input({
           onChange={onChange}
           placeholder={placeholder}
           disabled={disabled}
+          aria-invalid={Boolean(error)}
           className={cn(
             'w-full rounded-xl border px-4 py-3 text-sm',
             'bg-background-light/50 backdrop-blur-sm',
@@ -64,6 +63,7 @@ export default function Input({
             'disabled:opacity-50 disabled:cursor-not-allowed',
             className
           )}
+          {...props}
         />
         {iconRight && (
           <span className="absolute right-3 text-surface-400">

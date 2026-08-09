@@ -1,5 +1,7 @@
 import Product from '../models/Product.js';
 import Store from '../models/Store.js';
+import Category from '../models/Category.js';
+import mongoose from 'mongoose';
 import asyncHandler from '../utils/asyncHandler.js';
 
 // @desc    Create a new product
@@ -58,6 +60,8 @@ export const getProducts = asyncHandler(async (req, res) => {
     maxPrice,
     brand,
     rating,
+    seller,
+    store: storeFilter,
     sortBy = 'latest',
   } = req.query;
 
@@ -72,9 +76,30 @@ export const getProducts = asyncHandler(async (req, res) => {
     ];
   }
 
-  // Category filter
+  // Category filter — must cast to ObjectId for aggregation pipeline
   if (category) {
-    matchStage.category = category;
+    if (mongoose.Types.ObjectId.isValid(category)) {
+      matchStage.category = new mongoose.Types.ObjectId(category);
+    } else {
+      // Resolve category by name or slug
+      const categoryDoc = await Category.findOne({
+        $or: [
+          { name: { $regex: `^${category}$`, $options: 'i' } },
+          { slug: category.toLowerCase() },
+        ],
+      });
+      if (categoryDoc) matchStage.category = categoryDoc._id;
+    }
+  }
+
+  // Seller filter (for vendor product management)
+  if (seller && mongoose.Types.ObjectId.isValid(seller)) {
+    matchStage.seller = new mongoose.Types.ObjectId(seller);
+  }
+
+  // Store filter
+  if (storeFilter && mongoose.Types.ObjectId.isValid(storeFilter)) {
+    matchStage.store = new mongoose.Types.ObjectId(storeFilter);
   }
 
   // Price range filter

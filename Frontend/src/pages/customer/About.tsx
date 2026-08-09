@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import { FiShoppingBag, FiUsers, FiAward, FiShield, FiTruck, FiHeadphones, FiStar, FiArrowRight } from 'react-icons/fi'
-import { cn } from '../../lib/utils'
 
 const features = [
   { icon: FiShield, title: 'Secure Payments', desc: '100% protected transactions with advanced encryption' },
@@ -58,7 +57,7 @@ export default function About() {
             viewport={{ once: true }}
             className="grid grid-cols-2 sm:grid-cols-4 gap-6"
           >
-            {stats.map((stat, i) => (
+            {stats.map((stat) => (
               <Card key={stat.label} glass padding="lg" className="text-center">
                 <stat.icon className="w-8 h-8 mx-auto mb-3 text-primary" />
                 <p className="text-4xl font-extrabold text-gradient">{stat.value}</p>

@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import bcrypt from 'bcryptjs';
 import User from './src/models/User.js';
 import Store from './src/models/Store.js';
 import Category from './src/models/Category.js';
@@ -21,13 +20,11 @@ const seedDatabase = async () => {
     await Product.deleteMany();
     console.log('Cleared existing data');
 
-    // Create sample users
-    const hashedPassword = await bcrypt.hash('password123', 10);
-
+    // Create sample users — plain text passwords are hashed by the User model's pre-save hook
     const admin = await User.create({
       name: 'Admin User',
       email: 'admin@example.com',
-      password: hashedPassword,
+      password: 'password123',
       role: 'admin',
       isVerified: true,
     });
@@ -35,7 +32,7 @@ const seedDatabase = async () => {
     const vendor = await User.create({
       name: 'Vendor User',
       email: 'vendor@example.com',
-      password: hashedPassword,
+      password: 'password123',
       role: 'vendor',
       isVerified: true,
     });
@@ -43,7 +40,7 @@ const seedDatabase = async () => {
     const customer = await User.create({
       name: 'Customer User',
       email: 'customer@example.com',
-      password: hashedPassword,
+      password: 'password123',
       role: 'customer',
       isVerified: true,
     });
@@ -85,6 +82,7 @@ const seedDatabase = async () => {
       stock: 50,
       category: electronics._id,
       store: store._id,
+      seller: vendor._id,
       images: ['https://example.com/laptop.jpg'],
       rating: 4.5,
       numReviews: 10,
@@ -97,6 +95,7 @@ const seedDatabase = async () => {
       stock: 100,
       category: electronics._id,
       store: store._id,
+      seller: vendor._id,
       images: ['https://example.com/headphones.jpg'],
       rating: 4.7,
       numReviews: 25,
@@ -109,6 +108,7 @@ const seedDatabase = async () => {
       stock: 200,
       category: clothing._id,
       store: store._id,
+      seller: vendor._id,
       images: ['https://example.com/tshirt.jpg'],
       rating: 4.2,
       numReviews: 15,

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { FiCheckCircle, FiAlertCircle, FiInfo, FiAlertTriangle, FiX } from 'react-icons/fi'
@@ -79,3 +80,4 @@ export function useToast() {
   if (!ctx) throw new Error('useToast must be used within ToastProvider')
   return ctx
 }
+

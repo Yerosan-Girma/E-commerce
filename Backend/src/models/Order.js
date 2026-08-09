@@ -95,11 +95,15 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for query optimization
+// Compound indexes optimized for analytics aggregation pipelines
+orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ status: 1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ status: 1, totalPrice: 1 });
 orderSchema.index({ createdAt: -1 });
-orderSchema.index({ user: 1 });
 orderSchema.index({ 'orderItems.product': 1 });
+orderSchema.index({ 'orderItems.product': 1, status: 1 });
+orderSchema.index({ 'orderItems.product': 1, status: 1, createdAt: -1 });
 
 const Order = mongoose.model('Order', orderSchema);
 

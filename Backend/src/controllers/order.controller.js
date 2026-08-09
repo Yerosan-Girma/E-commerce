@@ -1,6 +1,7 @@
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import Cart from '../models/Cart.js';
+import Store from '../models/Store.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 // @desc    Place a new order
@@ -143,4 +144,84 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     session.endSession();
     throw error;
   }
+});
+
+// @desc    Get all orders containing this vendor's products
+// @route   GET /api/orders/vendor
+// @access  Private (Vendor only)
+export const getVendorOrders = asyncHandler(async (req, res) => {
+  const store = await Store.findOne({ owner: req.user._id });
+  if (!store) {
+    const error = new Error('Store not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const products = await Product.find({ store: store._id }).select('_id');
+  const productIds = products.map(p => p._id);
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const skip = (page - 1) * limit;
+
+  const [orders, total] = await Promise.all([
+    Order.find({ 'orderItems.product': { $in: productIds } })
+      .populate('user', 'name email')
+      .populate('orderItems.product', 'title images price')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+    Order.countDocuments({ 'orderItems.product': { $in: productIds } }),
+  ]);
+
+  res.status(200).json({
+    success: true,
+    message: 'Vendor orders retrieved successfully',
+    data: orders,
+    pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+  });
+});
+
+// @desc    Update order status (vendor advances shipping state)
+// @route   PUT /api/orders/vendor/:id/status
+// @access  Private (Vendor only)
+export const updateVendorOrderStatus = asyncHandler(async (req, res) => {
+  const { status } = req.body;
+  const allowedTransitions = ['Processing', 'Shipped', 'Delivered'];
+
+  if (!allowedTransitions.includes(status)) {
+    const error = new Error(`Invalid status. Vendor can set: ${allowedTransitions.join(', ')}`);
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const store = await Store.findOne({ owner: req.user._id });
+  if (!store) {
+    const error = new Error('Store not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const products = await Product.find({ store: store._id }).select('_id');
+  const productIds = products.map(p => p._id);
+
+  const order = await Order.findOne({
+    _id: req.params.id,
+    'orderItems.product': { $in: productIds },
+  });
+
+  if (!order) {
+    const error = new Error('Order not found or does not belong to your store');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  order.status = status;
+  await order.save();
+
+  res.status(200).json({
+    success: true,
+    message: `Order status updated to ${status}`,
+    data: order,
+  });
 });

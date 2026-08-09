@@ -8,6 +8,14 @@ import AnimatedBackground from '../../components/ui/AnimatedBackground'
 import { FiMail, FiLock, FiEye, FiEyeOff, FiUser } from 'react-icons/fi'
 import { api } from '../../services/api'
 
+interface AuthResponse {
+  _id?: string
+  name: string
+  email: string
+  role: 'customer' | 'vendor' | 'admin'
+  token: string
+}
+
 export default function Login() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -54,7 +62,7 @@ export default function Login() {
       }
 
       // Try to authenticate with backend
-      const response = await api.login({ email, password, role })
+      const response = await api.login({ email, password, role }) as unknown as AuthResponse
       dispatch(setCredentials({
         user: { name: name || response.name, email: response.email, role: response.role },
         token: response.token,

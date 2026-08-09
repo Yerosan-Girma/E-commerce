@@ -42,17 +42,15 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: M
         ].join(' ')}
         onClick={e => e.stopPropagation()}
       >
-        {(title || true) && (
-          <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-            {title && <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>}
-            <button
-              onClick={onClose}
-              className="ml-auto p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <FiX size={18} />
-            </button>
-          </div>
-        )}
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
+          {title && <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>}
+          <button
+            onClick={onClose}
+            className="ml-auto p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <FiX size={18} />
+          </button>
+        </div>
         <div className="p-6">{children}</div>
       </div>
     </div>

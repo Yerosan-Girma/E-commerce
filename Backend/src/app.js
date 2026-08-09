@@ -1,5 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import compression from 'compression';
+import cors from 'cors';
 import { errorHandler } from './middleware/error.middleware.js';
 import authRoutes from './routes/auth.routes.js';
 import testRoutes from './routes/test.routes.js';
@@ -20,10 +22,55 @@ import userRoutes from './routes/user.routes.js';
 dotenv.config();
 
 const app = express();
+app.disable('x-powered-by');
+
+const defaultAllowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+];
+
+const configuredOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = configuredOrigins.length > 0 ? configuredOrigins : defaultAllowedOrigins;
+
+// Regex to allow any Vercel preview deployment URL
+const vercelPreviewRegex = /^https:\/\/.*\.vercel\.app$/;
+
+app.use(cors({
+  origin(origin, callback) {
+    // Allow requests with no origin (e.g., curl, Postman, mobile apps)
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    // Allow explicitly configured origins
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    // Allow any Vercel preview deployment
+    if (vercelPreviewRegex.test(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    console.warn(`[CORS] Blocked request from origin: ${origin}`);
+    callback(new Error(`CORS blocked origin: ${origin}`));
+  },
+  credentials: true,
+}));
+app.use(compression());
 
 // Body parser middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Sanitize request body keys (trim spaces)
 app.use((req, res, next) => {
@@ -58,6 +105,13 @@ app.get('/', (req, res) => {
   res.json({
     success: true,
     message: 'Multi-Vendor E-Commerce API is running',
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    status: 'ok',
   });
 });
 

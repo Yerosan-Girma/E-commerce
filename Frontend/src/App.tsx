@@ -2,7 +2,6 @@ import { BrowserRouter } from 'react-router-dom'
 import AppRouter from './routes/AppRouter'
 import { useEffect } from 'react'
 import { useTheme } from './hooks/useTheme'
-import { ToastProvider } from './components/ui/Toast'
 
 function App() {
   const { theme } = useTheme()
@@ -17,9 +16,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <ToastProvider>
-        <AppRouter />
-      </ToastProvider>
+      <AppRouter />
     </BrowserRouter>
   )
 }

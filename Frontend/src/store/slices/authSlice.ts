@@ -1,13 +1,30 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 
+interface AuthUser {
+  _id?: string
+  name: string
+  email: string
+  role: 'customer' | 'vendor' | 'admin'
+}
+
 interface AuthState {
-  user: { name: string; email: string; role: 'customer' | 'vendor' | 'admin' } | null
+  user: AuthUser | null
   token: string | null
 }
 
+// Restore user from localStorage to survive page refreshes
+function loadStoredUser(): AuthUser | null {
+  try {
+    const raw = localStorage.getItem('user')
+    return raw ? (JSON.parse(raw) as AuthUser) : null
+  } catch {
+    return null
+  }
+}
+
 const initialState: AuthState = {
-  user: null,
+  user: loadStoredUser(),
   token: localStorage.getItem('token'),
 }
 
@@ -15,16 +32,18 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setCredentials: (state, action: PayloadAction<{ user: AuthState['user']; token: string }>) => {
+    setCredentials: (state, action: PayloadAction<{ user: AuthUser; token: string }>) => {
       state.user = action.payload.user
       state.token = action.payload.token
       localStorage.setItem('token', action.payload.token)
+      localStorage.setItem('user', JSON.stringify(action.payload.user))
     },
 
     logout: (state) => {
       state.user = null
       state.token = null
       localStorage.removeItem('token')
+      localStorage.removeItem('user')
     },
   },
 })

@@ -1,19 +1,22 @@
-const API_BASE_URL = 'http://localhost:5000/api'
+// Base URL — reads from Vite env var in production, falls back to localhost in dev
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000/api').replace(/\/$/, '')
 
-interface LoginCredentials {
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface LoginCredentials {
   email: string
   password: string
-  role: 'customer' | 'vendor' | 'admin'
+  role?: 'customer' | 'vendor' | 'admin'
 }
 
-interface RegisterData {
+export interface RegisterData {
   name: string
   email: string
   password: string
   role: 'customer' | 'vendor' | 'admin'
 }
 
-interface OrderData {
+export interface OrderData {
   orderItems: Array<{
     product: string
     title: string
@@ -33,75 +36,208 @@ interface OrderData {
   totalPrice: number
 }
 
-class ApiService {
-  private getAuthHeaders() {
-    const token = localStorage.getItem('token')
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-    }
+export interface ProductFilters {
+  keyword?: string
+  category?: string
+  minPrice?: number
+  maxPrice?: number
+  brand?: string
+  rating?: number
+  seller?: string
+  store?: string
+  sortBy?: 'latest' | 'priceAsc' | 'priceDesc' | 'topRated'
+  page?: number
+  limit?: number
+}
+
+// ─── Core fetch wrapper ───────────────────────────────────────────────────────
+
+async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const token = localStorage.getItem('token')
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options.headers as Record<string, string> ?? {}),
   }
 
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  })
+
+  const data = await response.json()
+
+  if (!response.ok) {
+    const message = data?.message || `Request failed with status ${response.status}`
+    const err = new Error(message) as Error & { status: number }
+    err.status = response.status
+    throw err
+  }
+
+  return data
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
+class ApiService {
+  // Auth
   async login(credentials: LoginCredentials) {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>('/auth/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials),
     })
-    if (!response.ok) throw new Error('Login failed')
-    const result = await response.json()
     return result.data
   }
 
   async register(data: RegisterData) {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>('/auth/register', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
-    if (!response.ok) throw new Error('Registration failed')
-    const result = await response.json()
     return result.data
   }
 
-  async getProducts() {
-    const response = await fetch(`${API_BASE_URL}/products`)
-    if (!response.ok) throw new Error('Failed to fetch products')
-    return response.json()
+  async getMe() {
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>('/auth/me')
+    return result.data
+  }
+
+  // ─── Products ───────────────────────────────────────────────────────────────
+
+  async getProducts(filters: ProductFilters = {}) {
+    const params = new URLSearchParams()
+    if (filters.keyword) params.set('keyword', filters.keyword)
+    if (filters.category) params.set('category', filters.category)
+    if (filters.minPrice !== undefined) params.set('minPrice', String(filters.minPrice))
+    if (filters.maxPrice !== undefined) params.set('maxPrice', String(filters.maxPrice))
+    if (filters.brand) params.set('brand', filters.brand)
+    if (filters.rating !== undefined) params.set('rating', String(filters.rating))
+    if (filters.seller) params.set('seller', filters.seller)
+    if (filters.store) params.set('store', filters.store)
+    if (filters.sortBy) params.set('sortBy', filters.sortBy)
+    if (filters.page) params.set('page', String(filters.page))
+    if (filters.limit) params.set('limit', String(filters.limit))
+
+    const query = params.toString() ? `?${params.toString()}` : ''
+    return apiFetch<{ success: boolean; data: unknown[]; pagination: unknown }>(`/products${query}`)
   }
 
   async getProduct(id: string) {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`)
-    if (!response.ok) throw new Error('Failed to fetch product')
-    return response.json()
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>(`/products/${id}`)
+    return result.data
   }
 
-  async createOrder(orderData: OrderData) {
-    const response = await fetch(`${API_BASE_URL}/orders`, {
+  async createProduct(data: Record<string, unknown>) {
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>('/products', {
       method: 'POST',
-      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data),
+    })
+    return result.data
+  }
+
+  async updateProduct(id: string, data: Record<string, unknown>) {
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>(`/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+    return result.data
+  }
+
+  async deleteProduct(id: string) {
+    return apiFetch<{ success: boolean }>(`/products/${id}`, { method: 'DELETE' })
+  }
+
+  // ─── Orders ─────────────────────────────────────────────────────────────────
+
+  async createOrder(orderData: OrderData) {
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>('/orders', {
+      method: 'POST',
       body: JSON.stringify(orderData),
     })
-    if (!response.ok) throw new Error('Failed to create order')
-    const result = await response.json()
     return result.data
   }
 
   async getOrders() {
-    const response = await fetch(`${API_BASE_URL}/orders/my-orders`, {
-      headers: this.getAuthHeaders(),
-    })
-    if (!response.ok) throw new Error('Failed to fetch orders')
-    const result = await response.json()
+    const result = await apiFetch<{ success: boolean; data: unknown[] }>('/orders/my-orders')
     return result.data
   }
 
   async getOrder(id: string) {
-    const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
-      headers: this.getAuthHeaders(),
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>(`/orders/${id}`)
+    return result.data
+  }
+
+  async cancelOrder(id: string) {
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>(`/orders/${id}/cancel`, {
+      method: 'PUT',
     })
-    if (!response.ok) throw new Error('Failed to fetch order')
-    const result = await response.json()
+    return result.data
+  }
+
+  // ─── Vendor Orders ──────────────────────────────────────────────────────────
+
+  async getVendorOrders(page = 1, limit = 20) {
+    const result = await apiFetch<{ success: boolean; data: unknown[]; pagination: unknown }>(
+      `/orders/vendor?page=${page}&limit=${limit}`,
+    )
+    return result
+  }
+
+  async updateVendorOrderStatus(orderId: string, status: string) {
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>(
+      `/orders/vendor/${orderId}/status`,
+      { method: 'PUT', body: JSON.stringify({ status }) },
+    )
+    return result.data
+  }
+
+  // ─── Store ──────────────────────────────────────────────────────────────────
+
+  async getMyStore() {
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>('/stores/my-store')
+    return result.data
+  }
+
+  async updateStore(id: string, data: Record<string, unknown>) {
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>(`/stores/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+    return result.data
+  }
+
+  async createStore(data: Record<string, unknown>) {
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>('/stores', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+    return result.data
+  }
+
+  // ─── Analytics ──────────────────────────────────────────────────────────────
+
+  async getVendorAnalytics() {
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>('/analytics/vendor')
+    return result.data
+  }
+
+  async getAdminAnalytics() {
+    const result = await apiFetch<{ success: boolean; data: Record<string, unknown> }>('/analytics/admin')
+    return result.data
+  }
+
+  // ─── Categories ─────────────────────────────────────────────────────────────
+
+  async getCategories() {
+    const result = await apiFetch<{ success: boolean; data: unknown[] }>('/categories')
+    return result.data
+  }
+
+  // ─── Users (admin) ───────────────────────────────────────────────────────────
+
+  async getUsers() {
+    const result = await apiFetch<{ success: boolean; data: unknown[] }>('/users')
     return result.data
   }
 }

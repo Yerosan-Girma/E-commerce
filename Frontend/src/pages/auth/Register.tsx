@@ -8,6 +8,14 @@ import AnimatedBackground from '../../components/ui/AnimatedBackground'
 import { FiMail, FiLock, FiUser, FiEye, FiEyeOff } from 'react-icons/fi'
 import { api } from '../../services/api'
 
+interface AuthResponse {
+  _id?: string
+  name: string
+  email: string
+  role: 'customer' | 'vendor' | 'admin'
+  token: string
+}
+
 type Role = 'customer' | 'vendor'
 
 export default function Register() {
@@ -37,7 +45,7 @@ export default function Register() {
     setLoading(true)
 
     try {
-      const response = await api.register({ name, email, password, role })
+      const response = await api.register({ name, email, password, role }) as unknown as AuthResponse
       dispatch(setCredentials({
         user: { name: response.name, email: response.email, role: response.role },
         token: response.token,
