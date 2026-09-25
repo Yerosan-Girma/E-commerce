@@ -7,14 +7,14 @@ import Card from '../../components/ui/Card'
 import { cn } from '../../lib/utils'
 
 const categories = [
-  { name: 'Electronics', icon: '💻', count: '1.2k products', color: 'from-primary to-blue-500' },
-  { name: 'Fashion', icon: '👗', count: '3.5k products', color: 'from-secondary to-violet-500' },
-  { name: 'Home & Living', icon: '🏠', count: '890 products', color: 'from-accent to-orange-500' },
-  { name: 'Sports', icon: '⚽', count: '620 products', color: 'from-success to-green-500' },
-  { name: 'Books', icon: '📚', count: '450 products', color: 'from-primary to-purple-500' },
-  { name: 'Beauty', icon: '💄', count: '720 products', color: 'from-secondary to-pink-500' },
-  { name: 'Toys', icon: '🧸', count: '340 products', color: 'from-accent to-yellow-500' },
-  { name: 'Food', icon: '🍕', count: '210 products', color: 'from-success to-teal-500' },
+  { name: 'Electronics', slug: 'electronics', icon: '💻', count: '3 products', color: 'from-primary to-blue-500', image: 'https://images.unsplash.com/photo-1498049794561-7780e4236e66?w=400' },
+  { name: 'Fashion', slug: 'fashion', icon: '👗', count: '3 products', color: 'from-secondary to-violet-500', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400' },
+  { name: 'Home & Living', slug: 'home-living', icon: '🏠', count: '2 products', color: 'from-accent to-orange-500', image: 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400' },
+  { name: 'Sports', slug: 'sports', icon: '⚽', count: '2 products', color: 'from-success to-green-500', image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=400' },
+  { name: 'Books', slug: 'books', icon: '📚', count: '2 products', color: 'from-primary to-purple-500', image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400' },
+  { name: 'Beauty', slug: 'beauty', icon: '💄', count: '2 products', color: 'from-secondary to-pink-500', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400' },
+  { name: 'Toys', slug: 'toys', icon: '🧸', count: '2 products', color: 'from-accent to-yellow-500', image: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=400' },
+  { name: 'Food', slug: 'food', icon: '🍕', count: '2 products', color: 'from-success to-teal-500', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400' },
 ]
 
 const featuredProducts = [
@@ -215,24 +215,144 @@ export default function Home() {
             </Link>
           </motion.div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6">
             {categories.map((cat, i) => (
               <motion.div
                 key={cat.name}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.2, delay: i * 0.03 }}
+                initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ 
+                  duration: 0.6, 
+                  delay: i * 0.1,
+                  type: "spring",
+                  stiffness: 100
+                }}
+                whileHover={{ 
+                  scale: 1.1, 
+                  y: -10,
+                  rotate: i % 2 === 0 ? 2 : -2
+                }}
               >
                 <Link
-                  to={`/products?category=${cat.name.toLowerCase()}`}
-                  className="group flex flex-col items-center gap-3 p-6 glass-card hover:neon-glow transition-all duration-300"
+                  to={`/products?category=${cat.slug}`}
+                  className="group relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-500"
+                  style={{ 
+                    height: '200px',
+                    background: `linear-gradient(135deg, ${cat.color.split(' ')[1]}, ${cat.color.split(' ')[3]})`
+                  }}
                 >
-                  <div className={cn('w-16 h-16 rounded-2xl bg-gradient-to-br flex items-center justify-center', cat.color)}>
-                    <span className="text-3xl">{cat.icon}</span>
+                  {/* Animated Background Pattern */}
+                  <motion.div 
+                    className="absolute inset-0 opacity-30"
+                    style={{ 
+                      backgroundImage: `url(${cat.image})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    }}
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      rotate: [0, 5, 0]
+                    }}
+                    transition={{
+                      duration: 8,
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                  />
+                  
+                  {/* Gradient Overlay */}
+                  <div className={cn('absolute inset-0 bg-gradient-to-br opacity-80', cat.color)} />
+                  
+                  {/* Shimmer Effect */}
+                  <motion.div 
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                    animate={{
+                      x: ['-100%', '100%']
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatDelay: 3
+                    }}
+                  />
+                  
+                  {/* Content */}
+                  <div className="relative flex flex-col items-center justify-center h-full p-4 gap-3">
+                    <motion.div 
+                      className="w-20 h-20 rounded-3xl bg-white/30 backdrop-blur-md flex items-center justify-center shadow-2xl border-2 border-white/40"
+                      whileHover={{ 
+                        scale: 1.2,
+                        rotate: 360
+                      }}
+                      transition={{ duration: 0.6 }}
+                    >
+                      <motion.span 
+                        className="text-5xl filter drop-shadow-2xl"
+                        animate={{
+                          y: [0, -5, 0]
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          repeatType: "reverse"
+                        }}
+                      >
+                        {cat.icon}
+                      </motion.span>
+                    </motion.div>
+                    
+                    <motion.div 
+                      className="text-center"
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 + i * 0.1 }}
+                    >
+                      <h3 className="text-base font-extrabold text-white drop-shadow-lg mb-1">{cat.name}</h3>
+                      <motion.span 
+                        className="text-xs font-bold text-white/90 bg-white/25 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30"
+                        whileHover={{ scale: 1.1 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {cat.count}
+                      </motion.span>
+                    </motion.div>
                   </div>
-                  <span className="text-sm font-semibold text-surface-200 text-center">{cat.name}</span>
-                  <span className="text-xs text-surface-500">{cat.count}</span>
+                  
+                  {/* Hover Glow Ring */}
+                  <motion.div 
+                    className="absolute inset-0 rounded-3xl border-4 border-white/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    animate={{
+                      scale: [1, 1.05, 1],
+                      opacity: [0, 0.5, 0]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity
+                    }}
+                  />
+                  
+                  {/* Particle Effects */}
+                  {[...Array(3)].map((_, j) => (
+                    <motion.div
+                      key={j}
+                      className="absolute w-2 h-2 bg-white/60 rounded-full"
+                      style={{
+                        top: `${20 + j * 30}%`,
+                        left: `${20 + j * 20}%`
+                      }}
+                      animate={{
+                        y: [0, -20, 0],
+                        opacity: [0, 1, 0],
+                        scale: [1, 1.5, 1]
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        delay: j * 0.3
+                      }}
+                    />
+                  ))}
                 </Link>
               </motion.div>
             ))}

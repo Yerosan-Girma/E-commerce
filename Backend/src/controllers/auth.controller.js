@@ -46,21 +46,37 @@ export const registerUser = asyncHandler(async (req, res) => {
 // @route   POST /api/auth/login
 // @access  Public
 export const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
+
+  console.log('[LOGIN] Attempting login with:', { email, role });
 
   // Find user and explicitly select password field
   const user = await User.findOne({ email }).select('+password');
   if (!user) {
+    console.log('[LOGIN] User not found for email:', email);
     const error = new Error('Invalid email or password');
     error.statusCode = 401;
     throw error;
   }
 
+  console.log('[LOGIN] User found:', { email: user.email, role: user.role });
+
   // Verify credentials
   const isMatch = await user.comparePassword(password);
+  console.log('[LOGIN] Password match result:', isMatch);
   if (!isMatch) {
+    console.log('[LOGIN] Password does not match');
     const error = new Error('Invalid email or password');
     error.statusCode = 401;
+    throw error;
+  }
+
+  // Validate role if provided — gives a clear error instead of silently failing
+  if (role && user.role !== role) {
+    const error = new Error(
+      `This account is registered as a "${user.role}". Please select the correct role and try again.`
+    );
+    error.statusCode = 403;
     throw error;
   }
 

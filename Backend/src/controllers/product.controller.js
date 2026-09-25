@@ -65,6 +65,8 @@ export const getProducts = asyncHandler(async (req, res) => {
     sortBy = 'latest',
   } = req.query;
 
+  console.log('[PRODUCTS] Query params:', { keyword, category, page, limit, sortBy });
+
   // Build match stage for filtering
   const matchStage = {};
 

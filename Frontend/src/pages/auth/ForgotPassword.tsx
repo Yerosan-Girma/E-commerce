@@ -26,7 +26,7 @@ export default function ForgotPassword() {
     <div className="min-h-screen flex items-center justify-center relative px-4 py-12">
       <AnimatedBackground />
       <div className="w-full max-w-md z-10">
-        <div className="glass-card p-8">
+        <div className="glass-card-light p-8">
           {sent ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">

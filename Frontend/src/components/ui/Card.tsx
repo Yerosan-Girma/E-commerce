@@ -8,7 +8,6 @@ interface CardProps {
   neon?: boolean
   padding?: 'none' | 'sm' | 'md' | 'lg'
   gradient?: boolean
-  /** When false, skip mount animation (avoids stuck opacity:0 in nested scroll areas) */
   animated?: boolean
   children?: ReactNode
   className?: string
@@ -34,13 +33,15 @@ export default function Card({
 }: CardProps) {
   return (
     <motion.div
-      initial={animated ? { opacity: 0, y: 20 } : false}
+      initial={animated ? { opacity: 0, y: 16 } : false}
       animate={animated ? { opacity: 1, y: 0 } : undefined}
-      transition={{ duration: 0.4 }}
-      whileHover={hover ? { 
-        y: -8, 
-        scale: 1.02,
-        boxShadow: neon ? '0 0 30px rgba(99, 102, 241, 0.4)' : '0 20px 40px -12px rgba(0,0,0,0.3)'
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      whileHover={hover ? {
+        y: -6,
+        scale: 1.015,
+        boxShadow: neon
+          ? '0 0 32px rgba(99, 102, 241, 0.45)'
+          : '0 24px 48px -12px rgba(0,0,0,0.4)',
       } : {}}
       className={cn(
         'rounded-2xl transition-all duration-300',

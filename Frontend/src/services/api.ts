@@ -64,12 +64,18 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
     ...(options.headers as Record<string, string> ?? {}),
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  })
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    })
+  } catch {
+    throw new Error(`Unable to connect to the API at ${API_BASE_URL}`)
+  }
 
-  const data = await response.json()
+  const contentType = response.headers.get('content-type') ?? ''
+  const data = contentType.includes('application/json') ? await response.json() : null
 
   if (!response.ok) {
     const message = data?.message || `Request failed with status ${response.status}`

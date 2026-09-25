@@ -211,7 +211,7 @@ export default function ProductDetail() {
                 )}
               </div>
 
-              <h1 className="text-3xl sm:text-4xl font-bold text-gradient mb-4 leading-tight">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-gradient mb-4 leading-tight tracking-tight">
                 {product.title}
               </h1>
 
@@ -230,7 +230,7 @@ export default function ProductDetail() {
               </div>
 
               <div className="flex items-baseline gap-4">
-                <span className="text-5xl font-extrabold text-gradient">${product.price.toFixed(2)}</span>
+                <span className="text-5xl font-extrabold text-white tracking-tight">${product.price.toFixed(2)}</span>
               </div>
             </div>
 
@@ -303,21 +303,21 @@ export default function ProductDetail() {
             </div>
 
             {/* Trust Badges */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               {[
-                { icon: FiShield, label: 'Secure Payment' },
-                { icon: FiTruck, label: 'Fast Delivery' },
-                { icon: FiRetry, label: 'Easy Returns' },
-              ].map(({ icon: Icon, label }) => (
+                { icon: FiShield, label: 'Secure Payment', color: 'from-blue-500/20 to-indigo-500/10' },
+                { icon: FiTruck, label: 'Fast Delivery', color: 'from-emerald-500/20 to-teal-500/10' },
+                { icon: FiRetry, label: 'Easy Returns', color: 'from-purple-500/20 to-violet-500/10' },
+              ].map(({ icon: Icon, label, color }) => (
                 <motion.div
                   key={label}
-                  whileHover={{ y: -5 }}
-                  className="glass-card p-4 flex flex-col items-center gap-2 text-center"
+                  whileHover={{ y: -3, scale: 1.02 }}
+                  className="glass-card p-4 flex flex-col items-center gap-2 text-center border border-white/8"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-mesh flex items-center justify-center">
+                  <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center`}>
                     <Icon size={20} className="text-white" />
                   </div>
-                  <span className="text-xs text-surface-400">{label}</span>
+                  <span className="text-xs font-semibold text-surface-300 leading-tight">{label}</span>
                 </motion.div>
               ))}
             </div>

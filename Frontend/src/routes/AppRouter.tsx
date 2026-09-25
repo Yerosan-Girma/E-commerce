@@ -3,8 +3,7 @@ import PublicLayout from '../components/layout/PublicLayout'
 import DashboardLayout from '../components/layout/DashboardLayout'
 
 // Auth
-import Login from '../pages/auth/Login'
-import Register from '../pages/auth/Register'
+import Auth from '../pages/auth/Auth'
 import ForgotPassword from '../pages/auth/ForgotPassword'
 
 // Customer
@@ -53,8 +52,9 @@ const AppRouter = () => {
         <Route path="/addresses" element={<AddressManagement />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/about" element={<About />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/login" element={<Auth />} />
+        <Route path="/register" element={<Auth />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
       </Route>
 

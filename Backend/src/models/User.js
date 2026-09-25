@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: [true, 'Please enter your email'],
-      unique: true,
       trim: true,
       lowercase: true,
       match: [
@@ -61,6 +60,8 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
 
 // Index for faster role-based queries (e.g. admin analytics)
 userSchema.index({ role: 1 });
+// Index for faster email lookups during authentication
+userSchema.index({ email: 1 }, { unique: true });
 
 const User = mongoose.model('User', userSchema);
 

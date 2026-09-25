@@ -34,36 +34,39 @@ export default function OrderHistory() {
     <div className="min-h-screen pt-24 px-4 sm:px-6 lg:px-8 pb-12">
       <div className="max-w-5xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-10"
         >
-          <h1 className="text-4xl font-bold text-gradient mb-2">My Orders</h1>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-gradient mb-2 tracking-tight">My Orders</h1>
           <p className="text-surface-500">Track and manage your orders</p>
         </motion.div>
 
         {/* Filter Tabs */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex gap-2 p-1 glass rounded-2xl mb-8 overflow-x-auto"
+          className="flex gap-2 p-1.5 glass-card mb-10 overflow-x-auto rounded-2xl"
         >
           {tabs.map(tab => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={cn(
-                'px-5 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200',
+                'px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200',
                 activeTab === tab.key
-                  ? 'bg-gradient-mesh text-white neon-glow'
-                  : 'text-surface-400 hover:text-surface-200 hover:bg-white/5'
+                  ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/25'
+                  : 'text-surface-400 hover:text-surface-200 hover:bg-white/8',
               )}
             >
               {tab.label}
               {tab.key !== 'all' && (
-                <span className="ml-2 text-xs opacity-75">
-                  ({mockOrders.filter(o => o.status === tab.key).length})
+                <span className={cn(
+                  'ml-2 text-xs font-bold px-1.5 py-0.5 rounded-full',
+                  activeTab === tab.key ? 'bg-white/20' : 'bg-white/8',
+                )}>
+                  {mockOrders.filter(o => o.status === tab.key).length}
                 </span>
               )}
             </button>

@@ -76,11 +76,13 @@ export default function Cart() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-8"
+          className="flex items-center justify-between mb-10"
         >
           <div>
-            <h1 className="text-4xl font-bold text-gradient mb-2">Shopping Cart</h1>
-            <p className="text-surface-500">{items.length} items in your cart</p>
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-gradient mb-2 tracking-tight">Shopping Cart</h1>
+            <p className="text-surface-500">
+              {items.length} item{items.length !== 1 ? 's' : ''} in your cart
+            </p>
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -104,18 +106,19 @@ export default function Cart() {
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card hover glass padding="md" className="flex gap-4">
-                    <div className="w-24 h-24 rounded-xl bg-background-light/50 flex items-center justify-center shrink-0 overflow-hidden">
+                  <Card hover glass padding="md" className="flex gap-4 border border-white/8 hover:border-primary/25">
+                    <div className="w-24 h-24 rounded-xl bg-background-light/60 flex items-center justify-center shrink-0 overflow-hidden border border-white/8">
                       {item.image ? (
                         <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-4xl">🛍️</span>
+                        <span className="text-4xl opacity-50">🛍️</span>
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-surface-200 text-base line-clamp-2 mb-2">{item.name}</h3>
-                      <p className="text-xl font-bold text-gradient mb-4">${(item.price * item.quantity).toFixed(2)}</p>
+                      <h3 className="font-bold text-surface-100 text-base line-clamp-2 mb-1 leading-snug">{item.name}</h3>
+                      <p className="text-sm text-surface-500 mb-3">${item.price.toFixed(2)} each</p>
+                      <p className="text-xl font-extrabold text-white mb-4">${(item.price * item.quantity).toFixed(2)}</p>
 
                       <div className="flex items-center justify-between">
                         {/* Quantity Control */}

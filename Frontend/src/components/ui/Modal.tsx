@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { ReactNode } from 'react'
 import { FiX } from 'react-icons/fi'
 
@@ -19,40 +20,57 @@ const sizeClasses = {
 
 export default function Modal({ open, onClose, title, children, size = 'md' }: ModalProps) {
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
+    document.body.style.overflow = open ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [open])
 
-  if (!open) return null
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div
-        className={[
-          'relative w-full glass-card z-10 animate-[slideUp_0.2s_ease-out]',
-          sizeClasses[size],
-        ].join(' ')}
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-          {title && <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>}
-          <button
-            onClick={onClose}
-            className="ml-auto p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+    <AnimatePresence>
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={onClose}
+        >
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+          />
+
+          {/* Panel */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.94, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.94, y: 16 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className={[
+              'relative w-full glass-card z-10 overflow-hidden',
+              sizeClasses[size],
+            ].join(' ')}
+            onClick={e => e.stopPropagation()}
           >
-            <FiX size={18} />
-          </button>
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
+              {title && (
+                <h2 className="text-lg font-bold text-surface-100 tracking-wide">{title}</h2>
+              )}
+              <button
+                onClick={onClose}
+                className="ml-auto w-8 h-8 rounded-lg flex items-center justify-center text-surface-400 hover:text-white hover:bg-white/10 transition-all duration-150"
+                aria-label="Close"
+              >
+                <FiX size={17} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-6">{children}</div>
+          </motion.div>
         </div>
-        <div className="p-6">{children}</div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   )
 }

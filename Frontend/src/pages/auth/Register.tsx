@@ -24,10 +24,12 @@ export default function Register() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [role, setRole] = useState<Role>('customer')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({})
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string; confirmPassword?: string }>({})
 
   const validate = () => {
     const errs: typeof errors = {}
@@ -35,6 +37,8 @@ export default function Register() {
     if (!email) errs.email = 'Email is required'
     else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Enter a valid email'
     if (!password || password.length < 6) errs.password = 'Password must be at least 6 characters'
+    if (!confirmPassword) errs.confirmPassword = 'Please confirm your password'
+    else if (password !== confirmPassword) errs.confirmPassword = 'Passwords do not match'
     return errs
   }
 
@@ -66,7 +70,7 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center relative px-4 py-12">
       <AnimatedBackground />
       <div className="w-full max-w-md z-10">
-        <div className="glass-card p-8">
+        <div className="glass-card-light p-8">
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center justify-center gap-2 mb-6">
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
@@ -130,6 +134,24 @@ export default function Register() {
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                </button>
+              }
+            />
+            <Input
+              label="Confirm Password"
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              placeholder="Confirm your password"
+              icon={<FiLock size={16} />}
+              error={errors.confirmPassword}
+              iconRight={
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showConfirmPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                 </button>
               }
             />

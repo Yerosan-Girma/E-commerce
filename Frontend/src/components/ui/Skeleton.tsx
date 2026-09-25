@@ -7,7 +7,12 @@ interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
   count?: number
 }
 
-function SkeletonLine({ width = 'w-full', height = 'h-4', rounded = 'rounded-lg', className = '' }: {
+function SkeletonLine({
+  width = 'w-full',
+  height = 'h-4',
+  rounded = 'rounded-lg',
+  className = '',
+}: {
   width?: string
   height?: string
   rounded?: string
@@ -16,11 +21,8 @@ function SkeletonLine({ width = 'w-full', height = 'h-4', rounded = 'rounded-lg'
   return (
     <div
       className={[
-        'animate-pulse bg-gray-200 dark:bg-gray-700',
-        width,
-        height,
-        rounded,
-        className,
+        'animate-pulse bg-white/6 dark:bg-white/6',
+        width, height, rounded, className,
       ].join(' ')}
     />
   )
@@ -28,15 +30,15 @@ function SkeletonLine({ width = 'w-full', height = 'h-4', rounded = 'rounded-lg'
 
 export function SkeletonCard() {
   return (
-    <div className="bg-white dark:bg-darksurface rounded-2xl border border-gray-100 dark:border-gray-700/50 overflow-hidden">
+    <div className="glass-card overflow-hidden rounded-2xl">
       <div className="animate-pulse">
-        <div className="h-48 bg-gray-200 dark:bg-gray-700" />
-        <div className="p-4 space-y-3">
+        <div className="h-52 bg-white/6 rounded-t-2xl" />
+        <div className="p-5 space-y-3">
           <SkeletonLine height="h-5" width="w-3/4" />
-          <SkeletonLine height="h-4" width="w-1/2" />
-          <div className="flex justify-between items-center pt-1">
-            <SkeletonLine height="h-6" width="w-1/4" />
-            <SkeletonLine height="h-8" width="w-1/3" rounded="rounded-xl" />
+          <SkeletonLine height="h-3.5" width="w-1/2" />
+          <div className="flex justify-between items-center pt-2">
+            <SkeletonLine height="h-7" width="w-1/4" />
+            <SkeletonLine height="h-9" width="w-1/3" rounded="rounded-xl" />
           </div>
         </div>
       </div>
@@ -53,7 +55,7 @@ export default function Skeleton({
   ...props
 }: SkeletonProps) {
   return (
-    <div className={`space-y-2 ${className}`} {...props}>
+    <div className={`space-y-2.5 ${className}`} {...props}>
       {Array.from({ length: count }).map((_, i) => (
         <SkeletonLine key={i} width={width} height={height} rounded={rounded} />
       ))}

@@ -4,6 +4,7 @@ import { useToast } from '../ui/Toast'
 import RatingStars from './RatingStars'
 import { FiShoppingCart, FiHeart } from 'react-icons/fi'
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 
 export interface Product {
   id: string
@@ -27,7 +28,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [wishlist, setWishlist] = useState(false)
   const [adding, setAdding] = useState(false)
 
-  const handleAdd = () => {
+  const handleAdd = (e: React.MouseEvent) => {
+    e.stopPropagation()
     setAdding(true)
     dispatch(addToCart({
       id: product.id,
@@ -37,7 +39,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       image: product.image,
     }))
     showToast(`${product.name} added to cart`, 'success')
-    setTimeout(() => setAdding(false), 600)
+    setTimeout(() => setAdding(false), 700)
   }
 
   const discount = product.originalPrice
@@ -45,66 +47,70 @@ export default function ProductCard({ product }: ProductCardProps) {
     : null
 
   return (
-    <div className="group relative bg-white dark:bg-darksurface border border-gray-100 dark:border-gray-700/50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+    <div className="group relative bg-white dark:bg-darksurface border border-gray-100 dark:border-white/8 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1.5 transition-all duration-300">
       {/* Image */}
-      <div className="relative h-52 bg-gray-50 dark:bg-gray-800 overflow-hidden">
+      <div className="relative h-56 bg-gray-50 dark:bg-background-light overflow-hidden">
         {product.image ? (
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
+            onError={e => {
+              (e.target as HTMLImageElement).style.display = 'none'
+            }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-6xl text-gray-200 dark:text-gray-700">🛍️</span>
+            <span className="text-6xl opacity-30">🛍️</span>
           </div>
         )}
+
+        {/* Gradient overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
         {discount && (
-          <span className="absolute top-3 left-3 bg-error text-white text-xs font-bold px-2 py-1 rounded-lg">
+          <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-md">
             -{discount}%
           </span>
         )}
         {product.badge && (
-          <span className="absolute top-3 right-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded-lg">
+          <span className="absolute top-3 right-12 bg-primary text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-md">
             {product.badge}
           </span>
         )}
-        <button
-          onClick={() => setWishlist(!wishlist)}
-          className={[
-            'absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center',
-            'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-sm',
-            'transition-all duration-200 hover:scale-110',
-            product.badge ? 'top-12' : 'top-3',
-          ].join(' ')}
+
+        {/* Wishlist button */}
+        <motion.button
+          whileHover={{ scale: 1.15 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={e => { e.stopPropagation(); setWishlist(!wishlist) }}
+          className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm shadow-md transition-all duration-200"
         >
           <FiHeart
             size={14}
-            className={wishlist ? 'fill-red-500 text-red-500' : 'text-gray-400'}
+            className={wishlist ? 'fill-red-500 text-red-500' : 'text-gray-400 hover:text-red-400'}
           />
-        </button>
+        </motion.button>
       </div>
 
       {/* Content */}
       <div className="p-4">
         {product.vendor && (
-          <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">{product.vendor}</p>
+          <p className="text-xs font-semibold text-primary/70 dark:text-primary/60 mb-1 truncate uppercase tracking-wide">
+            {product.vendor}
+          </p>
         )}
-        <h3 className="font-semibold text-gray-900 dark:text-white text-sm line-clamp-2 mb-2 leading-snug">
+        <h3 className="font-semibold text-gray-900 dark:text-surface-100 text-sm line-clamp-2 mb-2.5 leading-snug">
           {product.name}
         </h3>
         {product.rating !== undefined && (
           <div className="mb-3">
-            <RatingStars
-              rating={product.rating}
-              showValue
-              count={product.reviewCount}
-            />
+            <RatingStars rating={product.rating} showValue count={product.reviewCount} />
           </div>
         )}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 mt-1">
           <div>
-            <span className="text-lg font-bold text-gray-900 dark:text-white">
+            <span className="text-xl font-extrabold text-gray-900 dark:text-white">
               ${product.price.toFixed(2)}
             </span>
             {product.originalPrice && (
@@ -113,18 +119,16 @@ export default function ProductCard({ product }: ProductCardProps) {
               </span>
             )}
           </div>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.94 }}
             onClick={handleAdd}
             disabled={adding}
-            className={[
-              'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold',
-              'bg-primary text-white hover:bg-blue-700 transition-all duration-200',
-              'disabled:opacity-60 hover:shadow-md',
-            ].join(' ')}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-primary to-secondary text-white hover:shadow-lg hover:shadow-primary/30 disabled:opacity-60 transition-all duration-200"
           >
             <FiShoppingCart size={13} />
-            {adding ? '...' : 'Add'}
-          </button>
+            {adding ? '✓' : 'Add'}
+          </motion.button>
         </div>
       </div>
     </div>

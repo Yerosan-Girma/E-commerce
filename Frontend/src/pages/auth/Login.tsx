@@ -98,7 +98,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center relative px-4 py-12">
       <AnimatedBackground />
       <div className="w-full max-w-md z-10">
-        <div className="glass-card p-8">
+        <div className="glass-card-light p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center justify-center gap-2 mb-6">
@@ -164,12 +164,6 @@ export default function Login() {
                 </button>
               }
             />
-
-            {role !== 'customer' && (
-              <p className="text-xs text-surface-500 rounded-xl bg-white/5 border border-white/10 px-3 py-2">
-                Demo: <strong className="text-surface-300">{role}@example.com</strong> / password123
-              </p>
-            )}
 
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
