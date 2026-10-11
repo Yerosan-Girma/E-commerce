@@ -14,20 +14,14 @@ export const createStore = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  // Check if vendor already has a store
-  const existingStore = await Store.findOne({ owner: req.user._id });
-  if (existingStore) {
-    const error = new Error('You already have a store. One vendor can own only one store.');
-    error.statusCode = 400;
-    throw error;
-  }
+  // Store creation is now optional - vendors can have multiple stores
 
   // Create new store
   const store = await Store.create({
     storeName,
     description,
     logo,
-    owner: req.user._id,
+    owner: req.user._id || null,
     address,
   });
 
@@ -44,16 +38,11 @@ export const createStore = asyncHandler(async (req, res) => {
 export const getMyStore = asyncHandler(async (req, res) => {
   const store = await Store.findOne({ owner: req.user._id });
 
-  if (!store) {
-    const error = new Error('Store not found');
-    error.statusCode = 404;
-    throw error;
-  }
-
+  // Return empty array if no store exists (stores are now optional)
   res.status(200).json({
     success: true,
     message: 'Store retrieved successfully',
-    data: store,
+    data: store || null,
   });
 });
 

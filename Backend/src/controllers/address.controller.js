@@ -1,14 +1,27 @@
 import Address from '../models/Address.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
+function normalizeAddressPayload(body) {
+  return {
+    label: body.label || body.name,
+    country: body.country,
+    city: body.city,
+    state: body.state || '',
+    street: body.street || body.address,
+    postalCode: body.postalCode || body.zip,
+    phone: body.phone || '',
+    isDefault: body.isDefault,
+  };
+}
+
 // @desc    Add new address
 // @route   POST /api/addresses
 // @access  Private (Authenticated users only)
 export const addAddress = asyncHandler(async (req, res) => {
-  const { country, city, street, postalCode, phone, isDefault } = req.body;
+  const { label, country, city, state, street, postalCode, phone, isDefault } = normalizeAddressPayload(req.body);
 
   // Validate required fields
-  if (!country || !city || !street || !postalCode || !phone) {
+  if (!country || !city || !street || !postalCode) {
     const error = new Error('Please provide all required address fields');
     error.statusCode = 400;
     throw error;
@@ -24,8 +37,10 @@ export const addAddress = asyncHandler(async (req, res) => {
 
   const address = await Address.create({
     user: req.user._id,
+    label: label || 'Address',
     country,
     city,
+    state,
     street,
     postalCode,
     phone,
@@ -43,7 +58,7 @@ export const addAddress = asyncHandler(async (req, res) => {
 // @route   PUT /api/addresses/:id
 // @access  Private (Authenticated users only)
 export const updateAddress = asyncHandler(async (req, res) => {
-  const { country, city, street, postalCode, phone, isDefault } = req.body;
+  const { label, country, city, state, street, postalCode, phone, isDefault } = normalizeAddressPayload(req.body);
 
   const address = await Address.findById(req.params.id);
 
@@ -69,11 +84,13 @@ export const updateAddress = asyncHandler(async (req, res) => {
   }
 
   // Update address fields
+  address.label = label !== undefined ? label : address.label;
   address.country = country || address.country;
   address.city = city || address.city;
+  address.state = state !== undefined ? state : address.state;
   address.street = street || address.street;
   address.postalCode = postalCode || address.postalCode;
-  address.phone = phone || address.phone;
+  address.phone = phone !== undefined ? phone : address.phone;
   address.isDefault = isDefault !== undefined ? isDefault : address.isDefault;
 
   await address.save();

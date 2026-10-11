@@ -38,6 +38,10 @@ const orderSchema = new mongoose.Schema(
       required: [true, 'Order must have items'],
     },
     shippingAddress: {
+      fullName: {
+        type: String,
+        trim: true,
+      },
       address: {
         type: String,
         required: [true, 'Please provide shipping address'],
@@ -46,6 +50,10 @@ const orderSchema = new mongoose.Schema(
         type: String,
         required: [true, 'Please provide city'],
       },
+      state: {
+        type: String,
+        trim: true,
+      },
       postalCode: {
         type: String,
         required: [true, 'Please provide postal code'],
@@ -53,6 +61,10 @@ const orderSchema = new mongoose.Schema(
       country: {
         type: String,
         required: [true, 'Please provide country'],
+      },
+      phone: {
+        type: String,
+        trim: true,
       },
     },
     paymentMethod: {

@@ -9,7 +9,7 @@ import Card from '../../components/ui/Card'
 import { FiShoppingCart, FiHeart, FiShare2, FiChevronRight, FiShield, FiTruck, FiRefreshCw as FiRetry, FiStar, FiMinus, FiPlus, FiPackage } from 'react-icons/fi'
 import { cn } from '../../lib/utils'
 import type { RootState } from '../../store'
-import { api } from '../../services/api'
+import { api, clearCache } from '../../services/api'
 
 interface Review {
   author: string
@@ -36,7 +36,7 @@ interface Product {
 
 function LoadingSkeleton() {
   return (
-    <div className="min-h-screen pt-24 px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="min-h-screen pt-20 sm:pt-24 px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12 bg-slate-50 dark:bg-background">
       <div className="max-w-7xl mx-auto animate-pulse">
         <div className="h-4 w-48 bg-white/10 rounded mb-8" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -102,6 +102,8 @@ export default function ProductDetail() {
       image: product.images?.[0],
     }))
     showToast(`${product.title} added to cart!`, 'success')
+    clearCache('products') // Clear cache to refresh cart count
+    navigate('/cart')
   }
 
   if (loading) return <LoadingSkeleton />
@@ -130,7 +132,7 @@ export default function ProductDetail() {
         <motion.nav
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 text-sm text-surface-500 mb-8"
+          className="flex items-center gap-2 text-sm text-slate-500 dark:text-surface-500 mb-6 sm:mb-8"
         >
           <Link to="/" className="hover:text-primary transition-colors">Home</Link>
           <FiChevronRight size={14} />
@@ -142,14 +144,14 @@ export default function ProductDetail() {
               <FiChevronRight size={14} />
             </>
           )}
-          <span className="text-surface-300 truncate max-w-[200px]">{product.title}</span>
+          <span className="text-slate-700 dark:text-surface-300 truncate max-w-[200px]">{product.title}</span>
         </motion.nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-10 sm:mb-16">
           {/* Product Images */}
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-            <Card glass padding="none" className="relative aspect-square rounded-3xl overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-mesh opacity-20" />
+            <Card glass padding="none" className="relative aspect-square rounded-2xl overflow-hidden group !bg-white !border-slate-200 shadow-lg shadow-slate-200/60 dark:!bg-background-light dark:!border-white/10 dark:shadow-none">
+              <div className="absolute inset-0 bg-gradient-mesh opacity-10 dark:opacity-20" />
               <div className="relative h-full flex items-center justify-center">
                 {currentImage ? (
                   <img
@@ -163,7 +165,7 @@ export default function ProductDetail() {
                     animate={{ scale: 1 }}
                     className="text-[180px] group-hover:scale-110 transition-transform duration-500"
                   >
-                    <FiPackage size={120} className="text-surface-600" />
+                    <FiPackage size={120} className="text-slate-400 dark:text-surface-600" />
                   </motion.span>
                 )}
               </div>
@@ -188,7 +190,7 @@ export default function ProductDetail() {
                     whileHover={{ scale: 1.05 }}
                     onClick={() => setSelectedImage(i)}
                     className={cn(
-                      'w-20 h-20 rounded-xl glass flex items-center justify-center overflow-hidden transition-all',
+                      'w-20 h-20 rounded-xl bg-white border border-slate-200 shadow-sm dark:glass dark:border-white/10 flex items-center justify-center overflow-hidden transition-all',
                       selectedImage === i ? 'ring-2 ring-primary neon-glow' : '',
                     )}
                   >
@@ -203,11 +205,11 @@ export default function ProductDetail() {
           <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
             <div>
               <div className="flex items-center gap-3 mb-3">
-                <span className="glass px-3 py-1 rounded-full text-sm text-surface-400">
+                <span className="bg-slate-100 border border-slate-200 px-3 py-1 rounded-full text-sm font-medium text-slate-600 dark:glass dark:border-white/10 dark:text-surface-400">
                   {product.category?.name ?? 'Uncategorized'}
                 </span>
                 {product.brand && (
-                  <span className="glass px-3 py-1 rounded-full text-sm text-surface-400">{product.brand}</span>
+                  <span className="bg-slate-100 border border-slate-200 px-3 py-1 rounded-full text-sm font-medium text-slate-600 dark:glass dark:border-white/10 dark:text-surface-400">{product.brand}</span>
                 )}
               </div>
 
@@ -224,46 +226,46 @@ export default function ProductDetail() {
                       className={cn(i < Math.floor(product.rating) ? 'fill-current' : '')}
                     />
                   ))}
-                  <span className="text-surface-400 ml-2">{product.rating?.toFixed(1) ?? '0.0'}</span>
-                  <span className="text-surface-500 text-sm">({product.numReviews} reviews)</span>
+                  <span className="text-slate-700 dark:text-surface-400 ml-2">{product.rating?.toFixed(1) ?? '0.0'}</span>
+                  <span className="text-slate-500 dark:text-surface-500 text-sm">({product.numReviews} reviews)</span>
                 </div>
               </div>
 
               <div className="flex items-baseline gap-4">
-                <span className="text-5xl font-extrabold text-white tracking-tight">${product.price.toFixed(2)}</span>
+                <span className="text-4xl sm:text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight">${product.price.toFixed(2)}</span>
               </div>
             </div>
 
             {/* Vendor */}
             {product.store && (
-              <Card glass padding="md" className="flex items-center gap-4">
+              <Card glass padding="md" className="flex items-center gap-4 !bg-white !border-slate-200 shadow-md shadow-slate-200/70 dark:!bg-background-light dark:!border-white/10 dark:shadow-none">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-mesh flex items-center justify-center text-white font-bold text-xl">
                   {product.store.storeName?.[0] ?? 'S'}
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-surface-200">{product.store.storeName}</p>
-                  <p className="text-sm text-surface-500">Verified Seller</p>
+                  <p className="font-semibold text-slate-900 dark:text-surface-200">{product.store.storeName}</p>
+                  <p className="text-sm text-slate-500 dark:text-surface-500">Verified Seller</p>
                 </div>
               </Card>
             )}
 
             {/* Quantity Selector */}
             <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-surface-300">Quantity</span>
-              <div className="flex items-center glass rounded-xl overflow-hidden">
+              <span className="text-sm font-semibold text-slate-700 dark:text-surface-300">Quantity</span>
+              <div className="flex items-center rounded-xl overflow-hidden bg-white border border-slate-200 shadow-sm dark:glass dark:border-white/10">
                 <motion.button
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  className="w-12 h-12 flex items-center justify-center text-surface-300 hover:text-white hover:bg-white/5 transition-colors"
+                  className="w-12 h-12 flex items-center justify-center text-slate-600 hover:text-primary hover:bg-slate-100 dark:text-surface-300 dark:hover:text-white dark:hover:bg-white/5 transition-colors"
                   disabled={quantity <= 1}
                 >
                   <FiMinus size={18} />
                 </motion.button>
-                <span className="w-16 text-center text-lg font-bold text-surface-200">{quantity}</span>
+                <span className="w-16 text-center text-lg font-bold text-slate-900 dark:text-surface-200">{quantity}</span>
                 <motion.button
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
-                  className="w-12 h-12 flex items-center justify-center text-surface-300 hover:text-white hover:bg-white/5 transition-colors"
+                  className="w-12 h-12 flex items-center justify-center text-slate-600 hover:text-primary hover:bg-slate-100 dark:text-surface-300 dark:hover:text-white dark:hover:bg-white/5 transition-colors"
                   disabled={quantity >= product.stock}
                 >
                   <FiPlus size={18} />
@@ -287,8 +289,8 @@ export default function ProductDetail() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setWishlist(!wishlist)}
                 className={cn(
-                  'w-14 h-14 rounded-xl glass flex items-center justify-center transition-all',
-                  wishlist ? 'text-accent neon-glow-purple' : 'text-surface-400 hover:text-surface-200',
+                  'w-14 h-14 rounded-xl bg-white border border-slate-200 shadow-sm dark:glass dark:border-white/10 flex items-center justify-center transition-all',
+                  wishlist ? 'text-accent neon-glow-purple' : 'text-slate-500 hover:text-primary dark:text-surface-400 dark:hover:text-surface-200',
                 )}
               >
                 <FiHeart size={24} className={wishlist ? 'fill-current' : ''} />
@@ -296,7 +298,7 @@ export default function ProductDetail() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-14 h-14 rounded-xl glass flex items-center justify-center text-surface-400 hover:text-surface-200 transition-all"
+                className="w-14 h-14 rounded-xl bg-white border border-slate-200 shadow-sm dark:glass dark:border-white/10 flex items-center justify-center text-slate-500 hover:text-primary dark:text-surface-400 dark:hover:text-surface-200 transition-all"
               >
                 <FiShare2 size={24} />
               </motion.button>
@@ -312,12 +314,12 @@ export default function ProductDetail() {
                 <motion.div
                   key={label}
                   whileHover={{ y: -3, scale: 1.02 }}
-                  className="glass-card p-4 flex flex-col items-center gap-2 text-center border border-white/8"
+                  className="bg-white border border-slate-200 shadow-sm rounded-xl p-4 flex flex-col items-center gap-2 text-center dark:glass-card dark:border-white/8"
                 >
                   <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center`}>
-                    <Icon size={20} className="text-white" />
+                    <Icon size={20} className="text-slate-700 dark:text-white" />
                   </div>
-                  <span className="text-xs font-semibold text-surface-300 leading-tight">{label}</span>
+                  <span className="text-xs font-semibold text-slate-700 dark:text-surface-300 leading-tight">{label}</span>
                 </motion.div>
               ))}
             </div>
@@ -325,15 +327,15 @@ export default function ProductDetail() {
         </div>
 
         {/* Tabs */}
-        <Card glass padding="none" className="overflow-hidden">
-          <div className="flex border-b border-white/10">
+        <Card glass padding="none" className="overflow-hidden !bg-white !border-slate-200 shadow-md shadow-slate-200/70 dark:!bg-background-light dark:!border-white/10 dark:shadow-none">
+          <div className="flex border-b border-slate-200 dark:border-white/10">
             {(['description', 'reviews'] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
                 className={cn(
                   'px-6 py-4 text-sm font-semibold capitalize transition-all relative',
-                  tab === t ? 'text-primary' : 'text-surface-500 hover:text-surface-300',
+                  tab === t ? 'text-primary' : 'text-slate-500 hover:text-slate-900 dark:text-surface-500 dark:hover:text-surface-300',
                 )}
               >
                 {t} {t === 'reviews' && `(${product.numReviews})`}
@@ -344,12 +346,12 @@ export default function ProductDetail() {
             ))}
           </div>
 
-          <div className="p-8">
+          <div className="p-5 sm:p-8">
             {tab === 'description' && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-surface-300 leading-relaxed text-lg"
+                className="text-slate-700 dark:text-surface-300 leading-relaxed text-base sm:text-lg"
               >
                 {product.description}
               </motion.div>
@@ -363,7 +365,7 @@ export default function ProductDetail() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      className="glass-card p-6"
+                      className="bg-slate-50 border border-slate-200 rounded-xl p-5 sm:p-6 dark:glass-card dark:border-white/10"
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-4">
@@ -371,8 +373,8 @@ export default function ProductDetail() {
                             {r.author?.[0] ?? '?'}
                           </div>
                           <div>
-                            <p className="font-semibold text-surface-200">{r.author}</p>
-                            <p className="text-sm text-surface-500">{r.date}</p>
+                            <p className="font-semibold text-slate-900 dark:text-surface-200">{r.author}</p>
+                            <p className="text-sm text-slate-500 dark:text-surface-500">{r.date}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 text-yellow-500">
@@ -381,11 +383,11 @@ export default function ProductDetail() {
                           ))}
                         </div>
                       </div>
-                      <p className="text-surface-300 leading-relaxed">{r.comment}</p>
+                      <p className="text-slate-700 dark:text-surface-300 leading-relaxed">{r.comment}</p>
                     </motion.div>
                   ))
                 ) : (
-                  <p className="text-surface-500">No reviews yet. Be the first to review!</p>
+                  <p className="text-slate-500 dark:text-surface-500">No reviews yet. Be the first to review!</p>
                 )}
               </motion.div>
             )}

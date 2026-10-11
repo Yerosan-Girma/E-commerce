@@ -15,14 +15,14 @@ const router = express.Router();
 // All routes require authentication
 router.use(protect);
 
+// Vendor routes (must come before /:id to avoid conflict)
+router.get('/vendor', authorizeRoles('vendor'), getVendorOrders);
+router.put('/vendor/:id/status', authorizeRoles('vendor'), updateVendorOrderStatus);
+
 // Customer routes
 router.post('/', placeOrder);
 router.get('/my-orders', getMyOrders);
 router.get('/:id', getOrderById);
 router.put('/:id/cancel', cancelOrder);
-
-// Vendor routes
-router.get('/vendor', authorizeRoles('vendor'), getVendorOrders);
-router.put('/vendor/:id/status', authorizeRoles('vendor'), updateVendorOrderStatus);
 
 export default router;

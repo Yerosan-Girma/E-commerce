@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import PublicLayout from '../components/layout/PublicLayout'
 import DashboardLayout from '../components/layout/DashboardLayout'
+import ProtectedRoute from '../components/auth/ProtectedRoute'
 
 // Auth
 import Auth from '../pages/auth/Auth'
@@ -59,7 +60,7 @@ const AppRouter = () => {
       </Route>
 
       {/* Vendor Dashboard */}
-      <Route path="/vendor" element={<DashboardLayout role="vendor" />}>
+      <Route path="/vendor" element={<ProtectedRoute role="vendor"><DashboardLayout role="vendor" /></ProtectedRoute>}>
         <Route index element={<VendorDashboard />} />
         <Route path="store" element={<StoreProfile />} />
         <Route path="products" element={<ProductManagement />} />
@@ -69,7 +70,7 @@ const AppRouter = () => {
       </Route>
 
       {/* Admin Dashboard */}
-      <Route path="/admin" element={<DashboardLayout role="admin" />}>
+      <Route path="/admin" element={<ProtectedRoute role="admin"><DashboardLayout role="admin" /></ProtectedRoute>}>
         <Route index element={<AdminDashboard />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="vendors" element={<VendorManagement />} />

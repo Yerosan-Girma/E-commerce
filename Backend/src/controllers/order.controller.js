@@ -1,7 +1,8 @@
 import Order from '../models/Order.js';
+import Payment from '../models/Payment.js';
 import Product from '../models/Product.js';
 import Cart from '../models/Cart.js';
-import Store from '../models/Store.js';
+import mongoose from 'mongoose';
 import asyncHandler from '../utils/asyncHandler.js';
 
 // @desc    Place a new order
@@ -10,7 +11,6 @@ import asyncHandler from '../utils/asyncHandler.js';
 export const placeOrder = asyncHandler(async (req, res) => {
   const { orderItems, shippingAddress, paymentMethod, itemsPrice, taxPrice, shippingPrice, totalPrice } = req.body;
 
-  // Validate required fields
   if (!orderItems || orderItems.length === 0) {
     const error = new Error('Please provide order items');
     error.statusCode = 400;
@@ -23,23 +23,119 @@ export const placeOrder = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  // Create order directly from provided data
-  const order = await Order.create({
-    user: req.user._id,
-    orderItems,
-    shippingAddress,
-    paymentMethod,
-    itemsPrice: itemsPrice || 0,
-    taxPrice: taxPrice || 0,
-    shippingPrice: shippingPrice || 0,
-    totalPrice: totalPrice || 0,
-    status: 'Pending',
-  });
+  if (!['credit_card', 'debit_card', 'paypal', 'cash_on_delivery'].includes(paymentMethod)) {
+    const error = new Error('Please provide a valid payment method');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const session = await mongoose.startSession();
+  let order;
+  let payment;
+
+  try {
+    await session.withTransaction(async () => {
+      const productIds = orderItems.map((item) => item.product).filter(Boolean);
+      const products = await Product.find({ _id: { $in: productIds } }).session(session);
+      const productsById = new Map(products.map((product) => [product._id.toString(), product]));
+
+      const normalizedItems = orderItems.map((item) => {
+        const product = productsById.get(item.product?.toString());
+        if (!product) {
+          const error = new Error(`Product not found for order item: ${item.product}`);
+          error.statusCode = 404;
+          throw error;
+        }
+
+        const quantity = Number(item.quantity);
+        if (!Number.isInteger(quantity) || quantity < 1) {
+          const error = new Error('Order item quantity must be at least 1');
+          error.statusCode = 400;
+          throw error;
+        }
+
+        if (product.stock < quantity) {
+          const error = new Error(`Insufficient stock for ${product.title}`);
+          error.statusCode = 400;
+          throw error;
+        }
+
+        return {
+          product: product._id,
+          title: product.title,
+          quantity,
+          price: product.price,
+        };
+      });
+
+      for (const item of normalizedItems) {
+        const updatedProduct = await Product.findOneAndUpdate(
+          { _id: item.product, stock: { $gte: item.quantity } },
+          { $inc: { stock: -item.quantity } },
+          { new: true, session }
+        );
+
+        if (!updatedProduct) {
+          const error = new Error(`Insufficient stock for ${item.title}`);
+          error.statusCode = 400;
+          throw error;
+        }
+      }
+
+      const computedItemsPrice = normalizedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      const normalizedTaxPrice = Number.isFinite(Number(taxPrice)) ? Number(taxPrice) : 0;
+      const normalizedShippingPrice = Number.isFinite(Number(shippingPrice)) ? Number(shippingPrice) : 0;
+      const normalizedTotalPrice = Number.isFinite(Number(totalPrice))
+        ? Number(totalPrice)
+        : computedItemsPrice + normalizedTaxPrice + normalizedShippingPrice;
+
+      const [createdOrder] = await Order.create([{
+        user: req.user._id,
+        orderItems: normalizedItems,
+        shippingAddress: {
+          fullName: shippingAddress.fullName || shippingAddress.name || '',
+          address: shippingAddress.address || shippingAddress.street,
+          city: shippingAddress.city,
+          state: shippingAddress.state || '',
+          postalCode: shippingAddress.postalCode || shippingAddress.zip,
+          country: shippingAddress.country,
+          phone: shippingAddress.phone || '',
+        },
+        paymentMethod,
+        itemsPrice: Number.isFinite(Number(itemsPrice)) ? Number(itemsPrice) : computedItemsPrice,
+        taxPrice: normalizedTaxPrice,
+        shippingPrice: normalizedShippingPrice,
+        totalPrice: normalizedTotalPrice,
+        status: 'Pending',
+      }], { session });
+
+      const [createdPayment] = await Payment.create([{
+        order: createdOrder._id,
+        amount: createdOrder.totalPrice,
+        paymentMethod,
+        status: 'Pending',
+      }], { session });
+
+      await Cart.findOneAndUpdate(
+        { user: req.user._id },
+        { $set: { items: [] } },
+        { session }
+      );
+
+      order = createdOrder;
+      payment = createdPayment;
+    });
+  } finally {
+    session.endSession();
+  }
 
   res.status(201).json({
     success: true,
     message: 'Order placed successfully',
-    data: order,
+    data: {
+      order,
+      payment,
+    },
   });
 });
 
@@ -150,14 +246,8 @@ export const cancelOrder = asyncHandler(async (req, res) => {
 // @route   GET /api/orders/vendor
 // @access  Private (Vendor only)
 export const getVendorOrders = asyncHandler(async (req, res) => {
-  const store = await Store.findOne({ owner: req.user._id });
-  if (!store) {
-    const error = new Error('Store not found');
-    error.statusCode = 404;
-    throw error;
-  }
-
-  const products = await Product.find({ store: store._id }).select('_id');
+  // Get products directly by seller (vendor) - no store required
+  const products = await Product.find({ seller: req.user._id }).select('_id');
   const productIds = products.map(p => p._id);
 
   const page = parseInt(req.query.page) || 1;
@@ -195,14 +285,8 @@ export const updateVendorOrderStatus = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  const store = await Store.findOne({ owner: req.user._id });
-  if (!store) {
-    const error = new Error('Store not found');
-    error.statusCode = 404;
-    throw error;
-  }
-
-  const products = await Product.find({ store: store._id }).select('_id');
+  // Get products directly by seller (vendor) - no store required
+  const products = await Product.find({ seller: req.user._id }).select('_id');
   const productIds = products.map(p => p._id);
 
   const order = await Order.findOne({
@@ -211,7 +295,7 @@ export const updateVendorOrderStatus = asyncHandler(async (req, res) => {
   });
 
   if (!order) {
-    const error = new Error('Order not found or does not belong to your store');
+    const error = new Error('Order not found or does not belong to your products');
     error.statusCode = 404;
     throw error;
   }

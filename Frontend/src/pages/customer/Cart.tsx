@@ -29,7 +29,7 @@ export default function Cart() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen pt-24 px-4 sm:px-6 lg:px-8 pb-12">
+      <div className="min-h-screen pt-20 sm:pt-24 px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12">
         <div className="max-w-2xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -70,16 +70,16 @@ export default function Cart() {
   }
 
   return (
-    <div className="min-h-screen pt-24 px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="min-h-screen pt-20 sm:pt-24 px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-10"
+          className="flex items-start justify-between gap-4 mb-6 sm:mb-10"
         >
           <div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-gradient mb-2 tracking-tight">Shopping Cart</h1>
+            <h1 className="text-3xl sm:text-5xl font-extrabold text-gradient mb-2 tracking-tight">Shopping Cart</h1>
             <p className="text-surface-500">
               {items.length} item{items.length !== 1 ? 's' : ''} in your cart
             </p>
@@ -106,8 +106,8 @@ export default function Cart() {
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card hover glass padding="md" className="flex gap-4 border border-white/8 hover:border-primary/25">
-                    <div className="w-24 h-24 rounded-xl bg-background-light/60 flex items-center justify-center shrink-0 overflow-hidden border border-white/8">
+                  <Card hover glass padding="md" className="flex gap-3 sm:gap-4 border border-white/8 hover:border-primary/25">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-background-light/60 flex items-center justify-center shrink-0 overflow-hidden border border-white/8">
                       {item.image ? (
                         <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
@@ -168,7 +168,7 @@ export default function Cart() {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
             >
-              <Card glass padding="lg" className="sticky top-24">
+              <Card glass padding="lg" className="lg:sticky lg:top-24">
                 <h2 className="text-xl font-bold text-gradient mb-6">Order Summary</h2>
                 
                 {/* Free Shipping Progress */}

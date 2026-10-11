@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -8,7 +8,7 @@ import { cn } from '../../lib/utils'
 import { addToCart } from '../../store/slices/cartSlice'
 import { useToast } from '../../components/ui/Toast'
 import type { RootState } from '../../store'
-import { api } from '../../services/api'
+import { api, clearCache } from '../../services/api'
 
 interface Product {
   _id: string
@@ -48,7 +48,11 @@ export default function ProductListing() {
   const [viewMode, setViewMode]     = useState<'grid' | 'list'>('grid')
 
   useEffect(() => {
-    const t = setTimeout(() => { setDebouncedSearch(search); setPage(1) }, 400)
+    const t = setTimeout(() => {
+      setDebouncedSearch(search)
+      setPage(1)
+      clearCache('products') // Clear cache when search changes
+    }, 400)
     return () => clearTimeout(t)
   }, [search])
 
@@ -105,12 +109,12 @@ export default function ProductListing() {
   )
 
   return (
-    <div className="min-h-screen pt-24 px-4 sm:px-6 lg:px-8 pb-16">
+    <div className="min-h-screen pt-20 sm:pt-24 px-4 sm:px-6 lg:px-8 pb-8 sm:pb-16">
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gradient mb-2 tracking-tight">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-6 sm:mb-10">
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-gradient mb-2 tracking-tight">
             Discover Products
           </h1>
           <div className="flex items-center gap-3 flex-wrap">
@@ -140,11 +144,11 @@ export default function ProductListing() {
               className={cn(inputCls, 'pl-12')}
             />
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <Button onClick={() => setFilterOpen(!filterOpen)} variant="outline" className="lg:hidden" size="sm">
               <FiFilter size={15} /> Filters
             </Button>
-            <div className="relative">
+            <div className="relative flex-1 min-w-0 sm:flex-none">
               <select
                 value={sort}
                 onChange={e => { setSort(e.target.value); setPage(1) }}
@@ -154,7 +158,7 @@ export default function ProductListing() {
               </select>
               <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none" size={15} />
             </div>
-            <div className="flex gap-1 glass rounded-xl p-1">
+            <div className="flex gap-1 glass rounded-xl p-1 shrink-0">
               {[{ mode: 'grid', Icon: FiGrid }, { mode: 'list', Icon: FiList }].map(({ mode, Icon }) => (
                 <button
                   key={mode}
@@ -252,12 +256,12 @@ export default function ProductListing() {
                       'h-full flex flex-col rounded-2xl border transition-all duration-300 overflow-hidden',
                       'glass-card border-white/10 hover:border-primary/30',
                       'hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1',
-                      viewMode === 'list' && 'flex-row',
+                      viewMode === 'list' && 'flex-col sm:flex-row',
                     )}>
                       {/* Image */}
                       <div className={cn(
                         'relative overflow-hidden bg-gradient-to-br from-background-light to-background flex items-center justify-center shrink-0',
-                        viewMode === 'list' ? 'w-40 h-full rounded-l-2xl' : 'h-52 w-full',
+                        viewMode === 'list' ? 'w-full h-48 sm:w-40 sm:h-auto sm:rounded-l-2xl' : 'h-52 w-full',
                       )}>
                         {product.images?.[0] ? (
                           <img

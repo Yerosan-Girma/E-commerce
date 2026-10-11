@@ -202,11 +202,7 @@ export default function Categories() {
   const estimatedProductCount = categories.length * 120
 
   return (
-    <div className="relative min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#0B0F19] via-[#0E1527] to-[#0B0F19] overflow-hidden">
-      
-      {/* Decorative ambient background orbs */}
-      <div className="absolute top-10 left-1/4 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[120px] pointer-events-none -z-10" />
-      <div className="absolute bottom-20 right-1/4 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[140px] pointer-events-none -z-10" />
+    <div className="relative min-h-screen pt-20 sm:pt-24 pb-8 sm:pb-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#0B0F19] via-[#0E1527] to-[#0B0F19] overflow-hidden">
 
       <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -216,7 +212,7 @@ export default function Categories() {
           transition={{ duration: 0.6 }}
           className="text-center mb-10"
         >
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gradient mb-4 tracking-tight">
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-gradient mb-3 sm:mb-4 tracking-tight">
             Browse Categories
           </h1>
           <p className="text-surface-400 max-w-xl mx-auto text-base">
@@ -230,7 +226,7 @@ export default function Categories() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="grid grid-cols-3 gap-4 mb-10 max-w-3xl mx-auto"
+            className="grid grid-cols-3 gap-2 sm:gap-4 mb-8 sm:mb-10 max-w-3xl mx-auto"
           >
             <div className="glass-card p-4 text-center border border-white/5 bg-white/2">
               <div className="text-2xl sm:text-3xl font-extrabold text-gradient">{categories.length}</div>
@@ -253,7 +249,7 @@ export default function Categories() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex flex-col md:flex-row gap-4 justify-between items-center mb-8 max-w-5xl mx-auto w-full"
+            className="flex flex-col md:flex-row gap-3 sm:gap-4 justify-between items-stretch md:items-center mb-8 max-w-5xl mx-auto w-full"
           >
             {/* Search Input */}
             <div className="relative w-full md:max-w-md">
@@ -278,7 +274,7 @@ export default function Categories() {
             </div>
 
             {/* Offline Badge & View Toggle */}
-            <div className="flex items-center gap-4 w-full md:w-auto justify-end">
+            <div className="flex items-center gap-2 sm:gap-4 w-full md:w-auto justify-between md:justify-end">
               {isOffline && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold shadow-lg shadow-amber-500/5">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
@@ -359,7 +355,7 @@ export default function Categories() {
             className={cn(
               "max-w-6xl mx-auto",
               viewMode === 'grid' 
-                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" 
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
                 : "flex flex-col gap-6"
             )}
           >
@@ -370,7 +366,7 @@ export default function Categories() {
                     key={cat._id}
                     variants={itemVariants}
                     whileHover={{ y: -8, scale: 1.02 }}
-                    className="relative group flex flex-col justify-between h-[370px] rounded-3xl overflow-hidden glass-card border border-white/10 hover:border-white/20 transition-all duration-300 shadow-2xl hover:shadow-primary/5"
+                    className="relative group flex flex-col justify-between min-h-[340px] sm:h-[370px] rounded-2xl overflow-hidden glass-card border border-white/10 hover:border-white/20 transition-all duration-300 shadow-2xl hover:shadow-primary/5"
                   >
                     {/* Background Cover Image with overlay */}
                     <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -389,7 +385,7 @@ export default function Categories() {
                     )} />
 
                     {/* Card Body */}
-                    <div className="p-6 flex flex-col justify-between h-full">
+                    <div className="p-5 sm:p-6 flex flex-col justify-between h-full">
                       {/* Top section info */}
                       <div>
                         {/* Icon and product count */}

@@ -29,6 +29,18 @@ const userSchema = new mongoose.Schema(
       enum: ['customer', 'vendor', 'admin'],
       default: 'customer',
     },
+    status: {
+      type: String,
+      enum: ['active', 'suspended'],
+      default: 'active',
+    },
+    vendorStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected', 'suspended'],
+      default: function () {
+        return this.role === 'vendor' ? 'pending' : undefined;
+      },
+    },
     profileImage: {
       type: String,
       default: '',
@@ -60,6 +72,7 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
 
 // Index for faster role-based queries (e.g. admin analytics)
 userSchema.index({ role: 1 });
+userSchema.index({ role: 1, vendorStatus: 1 });
 // Index for faster email lookups during authentication
 userSchema.index({ email: 1 }, { unique: true });
 

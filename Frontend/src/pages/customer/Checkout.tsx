@@ -19,6 +19,16 @@ const steps = [
   { id: 4, label: 'Done', icon: FiCheckCircle },
 ]
 
+const checkoutInputClass = [
+  'w-full px-4 py-3 rounded-xl text-sm font-medium',
+  'bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 shadow-sm',
+  'focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-colors',
+  'dark:bg-background-light/50 dark:border-white/10 dark:text-surface-100 dark:placeholder:text-surface-500',
+].join(' ')
+
+const checkoutPanelClass = 'space-y-6 !bg-white !border-slate-200 shadow-lg shadow-slate-200/70 dark:!bg-background-light dark:!border-white/10 dark:shadow-none'
+const checkoutSummaryClass = '!bg-white !border-slate-200 shadow-lg shadow-slate-200/70 dark:!bg-background-light dark:!border-white/10 dark:shadow-none'
+
 export default function Checkout() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -124,7 +134,7 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen pt-24 px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="min-h-screen pt-20 sm:pt-24 px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12 bg-slate-50 dark:bg-background">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
@@ -132,8 +142,8 @@ export default function Checkout() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-10"
         >
-          <h1 className="text-4xl font-bold text-gradient mb-2">Checkout</h1>
-          <p className="text-surface-500 flex items-center gap-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gradient mb-2">Checkout</h1>
+          <p className="text-slate-600 dark:text-surface-500 flex items-center gap-2">
             <FiLock size={16} /> Secure checkout powered by Stripe
           </p>
         </motion.div>
@@ -153,7 +163,7 @@ export default function Checkout() {
                 >
                   <div className={cn(
                     'w-12 h-12 rounded-2xl flex items-center justify-center transition-all',
-                    done ? 'bg-success text-white neon-glow-green' : active ? 'bg-primary text-white neon-glow' : 'glass text-surface-500'
+                    done ? 'bg-success text-white neon-glow-green' : active ? 'bg-primary text-white neon-glow' : 'bg-white border border-slate-200 text-slate-500 shadow-sm dark:glass dark:border-white/10 dark:text-surface-500'
                   )}>
                     {done ? <FiCheckCircle size={20} /> : <Icon size={20} />}
                   </div>
@@ -166,7 +176,7 @@ export default function Checkout() {
                     initial={{ width: 0 }}
                     animate={{ width: '100%' }}
                     transition={{ delay: i * 0.1 + 0.2 }}
-                    className={cn('flex-1 h-0.5 mx-4', done ? 'bg-success' : 'bg-white/10')}
+                    className={cn('flex-1 h-0.5 mx-2 sm:mx-4', done ? 'bg-success' : 'bg-slate-200 dark:bg-white/10')}
                   />
                 )}
               </div>
@@ -185,7 +195,7 @@ export default function Checkout() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 30 }}
                 >
-                  <Card glass padding="lg" className="space-y-6">
+                  <Card glass padding="lg" className={checkoutPanelClass}>
                     <h2 className="text-xl font-bold text-gradient flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-gradient-mesh flex items-center justify-center">
                         <FiMapPin size={20} className="text-white" />
@@ -194,90 +204,60 @@ export default function Checkout() {
                     </h2>
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm text-surface-400 mb-2 block">Full name</label>
+                        <label className="text-sm font-semibold text-slate-700 dark:text-surface-400 mb-2 block">Full name</label>
                         <input
                           value={shipping.name}
                           onChange={e => setShipping(s => ({ ...s, name: e.target.value }))}
                           placeholder="John Doe"
-                          className={cn(
-                            'w-full px-4 py-3 rounded-xl text-sm',
-                            'bg-background-light/50 backdrop-blur-sm border border-white/10',
-                            'text-surface-100 placeholder:text-surface-500',
-                            'focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none'
-                          )}
+                          className={checkoutInputClass}
                         />
                       </div>
                       <div>
-                        <label className="text-sm text-surface-400 mb-2 block">Street address</label>
+                        <label className="text-sm font-semibold text-slate-700 dark:text-surface-400 mb-2 block">Street address</label>
                         <input
                           value={shipping.address}
                           onChange={e => setShipping(s => ({ ...s, address: e.target.value }))}
                           placeholder="123 Main St"
-                          className={cn(
-                            'w-full px-4 py-3 rounded-xl text-sm',
-                            'bg-background-light/50 backdrop-blur-sm border border-white/10',
-                            'text-surface-100 placeholder:text-surface-500',
-                            'focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none'
-                          )}
+                          className={checkoutInputClass}
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm text-surface-400 mb-2 block">City</label>
+                          <label className="text-sm font-semibold text-slate-700 dark:text-surface-400 mb-2 block">City</label>
                           <input
                             value={shipping.city}
                             onChange={e => setShipping(s => ({ ...s, city: e.target.value }))}
                             placeholder="New York"
-                            className={cn(
-                              'w-full px-4 py-3 rounded-xl text-sm',
-                              'bg-background-light/50 backdrop-blur-sm border border-white/10',
-                              'text-surface-100 placeholder:text-surface-500',
-                              'focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none'
-                            )}
+                            className={checkoutInputClass}
                           />
                         </div>
                         <div>
-                          <label className="text-sm text-surface-400 mb-2 block">State</label>
+                          <label className="text-sm font-semibold text-slate-700 dark:text-surface-400 mb-2 block">State</label>
                           <input
                             value={shipping.state}
                             onChange={e => setShipping(s => ({ ...s, state: e.target.value }))}
                             placeholder="NY"
-                            className={cn(
-                              'w-full px-4 py-3 rounded-xl text-sm',
-                              'bg-background-light/50 backdrop-blur-sm border border-white/10',
-                              'text-surface-100 placeholder:text-surface-500',
-                              'focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none'
-                            )}
+                            className={checkoutInputClass}
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm text-surface-400 mb-2 block">ZIP code</label>
+                          <label className="text-sm font-semibold text-slate-700 dark:text-surface-400 mb-2 block">ZIP code</label>
                           <input
                             value={shipping.zip}
                             onChange={e => setShipping(s => ({ ...s, zip: e.target.value }))}
                             placeholder="10001"
-                            className={cn(
-                              'w-full px-4 py-3 rounded-xl text-sm',
-                              'bg-background-light/50 backdrop-blur-sm border border-white/10',
-                              'text-surface-100 placeholder:text-surface-500',
-                              'focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none'
-                            )}
+                            className={checkoutInputClass}
                           />
                         </div>
                         <div>
-                          <label className="text-sm text-surface-400 mb-2 block">Country</label>
+                          <label className="text-sm font-semibold text-slate-700 dark:text-surface-400 mb-2 block">Country</label>
                           <input
                             value={shipping.country}
                             onChange={e => setShipping(s => ({ ...s, country: e.target.value }))}
                             placeholder="US"
-                            className={cn(
-                              'w-full px-4 py-3 rounded-xl text-sm',
-                              'bg-background-light/50 backdrop-blur-sm border border-white/10',
-                              'text-surface-100 placeholder:text-surface-500',
-                              'focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none'
-                            )}
+                            className={checkoutInputClass}
                           />
                         </div>
                       </div>
@@ -297,7 +277,7 @@ export default function Checkout() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 30 }}
                 >
-                  <Card glass padding="lg" className="space-y-6">
+                  <Card glass padding="lg" className={checkoutPanelClass}>
                     <h2 className="text-xl font-bold text-gradient flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-gradient-mesh flex items-center justify-center">
                         <FiCreditCard size={20} className="text-white" />
@@ -306,65 +286,45 @@ export default function Checkout() {
                     </h2>
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm text-surface-400 mb-2 block">Name on card</label>
+                        <label className="text-sm font-semibold text-slate-700 dark:text-surface-400 mb-2 block">Name on card</label>
                         <input
                           value={payment.cardName}
                           onChange={e => setPayment(p => ({ ...p, cardName: e.target.value }))}
                           placeholder="John Doe"
-                          className={cn(
-                            'w-full px-4 py-3 rounded-xl text-sm',
-                            'bg-background-light/50 backdrop-blur-sm border border-white/10',
-                            'text-surface-100 placeholder:text-surface-500',
-                            'focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none'
-                          )}
+                          className={checkoutInputClass}
                         />
                       </div>
                       <div>
-                        <label className="text-sm text-surface-400 mb-2 block">Card number</label>
+                        <label className="text-sm font-semibold text-slate-700 dark:text-surface-400 mb-2 block">Card number</label>
                         <input
                           value={payment.cardNumber}
                           onChange={e => setPayment(p => ({ ...p, cardNumber: e.target.value }))}
                           placeholder="1234 5678 9012 3456"
-                          className={cn(
-                            'w-full px-4 py-3 rounded-xl text-sm',
-                            'bg-background-light/50 backdrop-blur-sm border border-white/10',
-                            'text-surface-100 placeholder:text-surface-500',
-                            'focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none'
-                          )}
+                          className={checkoutInputClass}
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm text-surface-400 mb-2 block">Expiry date</label>
+                          <label className="text-sm font-semibold text-slate-700 dark:text-surface-400 mb-2 block">Expiry date</label>
                           <input
                             value={payment.expiry}
                             onChange={e => setPayment(p => ({ ...p, expiry: e.target.value }))}
                             placeholder="MM/YY"
-                            className={cn(
-                              'w-full px-4 py-3 rounded-xl text-sm',
-                              'bg-background-light/50 backdrop-blur-sm border border-white/10',
-                              'text-surface-100 placeholder:text-surface-500',
-                              'focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none'
-                            )}
+                            className={checkoutInputClass}
                           />
                         </div>
                         <div>
-                          <label className="text-sm text-surface-400 mb-2 block">CVV</label>
+                          <label className="text-sm font-semibold text-slate-700 dark:text-surface-400 mb-2 block">CVV</label>
                           <input
                             value={payment.cvv}
                             onChange={e => setPayment(p => ({ ...p, cvv: e.target.value }))}
                             placeholder="123"
-                            className={cn(
-                              'w-full px-4 py-3 rounded-xl text-sm',
-                              'bg-background-light/50 backdrop-blur-sm border border-white/10',
-                              'text-surface-100 placeholder:text-surface-500',
-                              'focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none'
-                            )}
+                            className={checkoutInputClass}
                           />
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
                       <Button variant="outline" onClick={() => setStep(1)} fullWidth>Back</Button>
                       <Button onClick={() => setStep(3)} fullWidth size="lg" className="neon-glow gap-2">
                         Review Order <FiArrowRight size={18} />
@@ -382,7 +342,7 @@ export default function Checkout() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 30 }}
                 >
-                  <Card glass padding="lg" className="space-y-6">
+                  <Card glass padding="lg" className={checkoutPanelClass}>
                     <h2 className="text-xl font-bold text-gradient flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-gradient-mesh flex items-center justify-center">
                         <FiPackage size={20} className="text-white" />
@@ -390,19 +350,19 @@ export default function Checkout() {
                       Review Order
                     </h2>
                     
-                    <div className="glass-card p-4 space-y-3">
-                      <h3 className="text-sm font-semibold text-surface-200 mb-3">Items</h3>
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 dark:glass-card dark:border-white/10">
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-surface-200 mb-3">Items</h3>
                       {items.map(item => (
                         <div key={item.id} className="flex justify-between text-sm">
-                          <span className="text-surface-400 truncate">{item.name} × {item.quantity}</span>
-                          <span className="text-surface-200 ml-4">${(item.price * item.quantity).toFixed(2)}</span>
+                          <span className="text-slate-600 dark:text-surface-400 truncate">{item.name} × {item.quantity}</span>
+                          <span className="text-slate-900 dark:text-surface-200 ml-4">${(item.price * item.quantity).toFixed(2)}</span>
                         </div>
                       ))}
                     </div>
 
-                    <div className="glass-card p-4">
-                      <h3 className="text-sm font-semibold text-surface-200 mb-2">Ship to</h3>
-                      <p className="text-sm text-surface-400">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 dark:glass-card dark:border-white/10">
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-surface-200 mb-2">Ship to</h3>
+                      <p className="text-sm text-slate-600 dark:text-surface-400">
                         {shipping.name}<br />
                         {shipping.address}<br />
                         {shipping.city}, {shipping.state} {shipping.zip}<br />
@@ -410,7 +370,7 @@ export default function Checkout() {
                       </p>
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
                       <Button variant="outline" onClick={() => setStep(2)} fullWidth>Back</Button>
                       <Button onClick={handlePlaceOrder} fullWidth size="lg" className="neon-glow">
                         Place Order
@@ -428,28 +388,28 @@ export default function Checkout() {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
             >
-              <Card glass padding="lg" className="sticky top-24">
+              <Card glass padding="lg" className={cn(checkoutSummaryClass, 'lg:sticky lg:top-24')}>
                 <h3 className="text-lg font-bold text-gradient mb-6">Order Summary</h3>
                 <div className="space-y-3 mb-6">
                   {items.map(item => (
                     <div key={item.id} className="flex justify-between text-sm">
-                      <span className="text-surface-400 truncate">{item.name} × {item.quantity}</span>
-                      <span className="text-surface-200">${(item.price * item.quantity).toFixed(2)}</span>
+                      <span className="text-slate-600 dark:text-surface-400 truncate">{item.name} × {item.quantity}</span>
+                      <span className="text-slate-900 dark:text-surface-200">${(item.price * item.quantity).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
-                <div className="border-t border-white/10 pt-4 space-y-3">
-                  <div className="flex justify-between text-sm text-surface-400">
+                <div className="border-t border-slate-200 dark:border-white/10 pt-4 space-y-3">
+                  <div className="flex justify-between text-sm text-slate-600 dark:text-surface-400">
                     <span>Subtotal</span>
                     <span>${subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-surface-400">
+                  <div className="flex justify-between text-sm text-slate-600 dark:text-surface-400">
                     <span>Shipping</span>
                     <span className={shippingFee === 0 ? 'text-success' : ''}>
                       {shippingFee === 0 ? 'FREE' : `$${shippingFee.toFixed(2)}`}
                     </span>
                   </div>
-                  <div className="flex justify-between text-lg font-bold text-gradient pt-3 border-t border-white/10">
+                  <div className="flex justify-between text-lg font-bold text-gradient pt-3 border-t border-slate-200 dark:border-white/10">
                     <span>Total</span>
                     <span>${total.toFixed(2)}</span>
                   </div>

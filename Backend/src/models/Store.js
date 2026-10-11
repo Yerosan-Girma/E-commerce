@@ -18,7 +18,6 @@ const storeSchema = new mongoose.Schema(
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'Store must have an owner'],
     },
     address: {
       type: String,
@@ -37,8 +36,8 @@ const storeSchema = new mongoose.Schema(
   }
 );
 
-// Ensure one vendor can own only one store
-storeSchema.index({ owner: 1 }, { unique: true });
+// Store owner index (not unique - vendors can have multiple stores if needed)
+storeSchema.index({ owner: 1 });
 
 const Store = mongoose.model('Store', storeSchema);
 

@@ -1,6 +1,6 @@
 import Product from '../models/Product.js';
-import Store from '../models/Store.js';
 import Category from '../models/Category.js';
+import Store from '../models/Store.js';
 import mongoose from 'mongoose';
 import asyncHandler from '../utils/asyncHandler.js';
 
@@ -17,13 +17,8 @@ export const createProduct = asyncHandler(async (req, res) => {
     throw error;
   }
 
-  // Find the vendor's store
+  // Find the vendor's store (optional - products can exist without a store)
   const store = await Store.findOne({ owner: req.user._id });
-  if (!store) {
-    const error = new Error('Store not found. Please create a store first.');
-    error.statusCode = 404;
-    throw error;
-  }
 
   // Create new product
   const product = await Product.create({
@@ -33,7 +28,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     price,
     stock,
     category,
-    store: store._id,
+    store: store ? store._id : null,
     seller: req.user._id,
     brand,
   });
@@ -99,7 +94,7 @@ export const getProducts = asyncHandler(async (req, res) => {
     matchStage.seller = new mongoose.Types.ObjectId(seller);
   }
 
-  // Store filter
+  // Store filter (optional - products can exist without stores)
   if (storeFilter && mongoose.Types.ObjectId.isValid(storeFilter)) {
     matchStage.store = new mongoose.Types.ObjectId(storeFilter);
   }

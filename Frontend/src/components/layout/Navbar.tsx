@@ -61,18 +61,18 @@ export default function Navbar() {
           'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
           isScrolled
             ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 py-3 shadow-2xl shadow-primary/10'
-            : 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md py-5 border-b border-gray-100 dark:border-gray-800'
+            : 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md py-3 sm:py-5 border-b border-gray-100 dark:border-gray-800'
         )}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 shrink-0 group">
               <motion.div
                 whileHover={{ rotate: 180, scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 transition={{ duration: 0.5 }}
-                className="w-10 h-10 rounded-xl bg-gradient-mesh flex items-center justify-center shadow-lg shadow-primary/30"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-mesh flex items-center justify-center shadow-lg shadow-primary/30"
               >
                 <span className="text-white font-bold text-lg">M</span>
               </motion.div>
@@ -120,13 +120,13 @@ export default function Navbar() {
               />
             </div>
 
-            <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-1.5 sm:gap-3 ml-auto">
               {/* Theme Toggle */}
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 15 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={toggleTheme}
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-primary transition-all duration-300"
+                className="hidden sm:flex w-10 h-10 rounded-xl items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-primary transition-all duration-300"
                 aria-label="Toggle theme"
               >
                 {theme === 'dark' ? <FiSun size={18} /> : <FiMoon size={18} />}
@@ -142,23 +142,27 @@ export default function Navbar() {
               </motion.button>
 
               {/* Cart */}
-              <Link to="/cart" className="relative">
+              <Link to="/cart" className="relative group shrink-0">
                 <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="relative w-10 h-10 rounded-xl items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-primary hover:shadow-lg hover:shadow-primary/20 transition-all duration-300"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-r from-primary/10 to-secondary/10 dark:from-primary/20 dark:to-secondary/20 text-primary dark:text-primary border-2 border-primary/30 dark:border-primary/40 hover:bg-gradient-to-r hover:from-primary hover:to-secondary hover:text-white hover:border-transparent hover:shadow-lg hover:shadow-primary/40 transition-all duration-300"
                 >
                   <FiShoppingCart size={18} />
                   {cartCount > 0 && (
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-primary to-secondary rounded-full text-xs text-white font-bold flex items-center justify-center shadow-lg"
+                      className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-primary to-secondary rounded-full text-xs text-white font-bold flex items-center justify-center shadow-lg shadow-primary/50 ring-2 ring-white dark:ring-gray-900"
                     >
                       {cartCount > 99 ? '99+' : cartCount}
                     </motion.span>
                   )}
                 </motion.button>
+                {/* Tooltip */}
+                <div className="absolute -bottom-9 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                  View Cart
+                </div>
               </Link>
 
               {/* Notifications */}
@@ -285,7 +289,8 @@ export default function Navbar() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center text-surface-300 hover:bg-white/5 transition-colors"
+                className="lg:hidden w-10 h-10 rounded-xl flex items-center justify-center text-surface-300 hover:bg-white/5 transition-colors"
+                aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
               >
                 {mobileMenuOpen ? <FiX size={18} /> : <FiMenu size={18} />}
               </motion.button>
@@ -308,7 +313,7 @@ export default function Navbar() {
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              className="absolute right-0 top-0 bottom-0 w-80 bg-background-light border-l border-white/10 p-6"
+              className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-background-light border-l border-white/10 p-5 sm:p-6"
             >
               <div className="flex flex-col gap-6 mt-16">
                 <div className="relative">

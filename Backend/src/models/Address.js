@@ -7,6 +7,11 @@ const addressSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'Address must belong to a user'],
     },
+    label: {
+      type: String,
+      trim: true,
+      default: 'Address',
+    },
     country: {
       type: String,
       required: [true, 'Please provide country'],
@@ -16,6 +21,11 @@ const addressSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide city'],
       trim: true,
+    },
+    state: {
+      type: String,
+      trim: true,
+      default: '',
     },
     street: {
       type: String,
@@ -29,8 +39,8 @@ const addressSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: [true, 'Please provide phone number'],
       trim: true,
+      default: '',
     },
     isDefault: {
       type: Boolean,

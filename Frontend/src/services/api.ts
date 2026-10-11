@@ -4,6 +4,10 @@ import { logout } from '../store/slices/authSlice'
 // Base URL — reads from Vite env var in production, falls back to localhost in dev
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000/api').replace(/\/$/, '')
 
+// Simple in-memory cache for GET requests
+const cache = new Map<string, { data: unknown; timestamp: number }>()
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface LoginCredentials {
@@ -57,6 +61,16 @@ export interface ProductFilters {
 
 async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('token')
+  const isGetRequest = !options.method || options.method === 'GET'
+  const cacheKey = `${endpoint}${JSON.stringify(options)}`
+
+  // Check cache for GET requests
+  if (isGetRequest) {
+    const cached = cache.get(cacheKey)
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.data as T
+    }
+  }
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -89,7 +103,25 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
     throw err
   }
 
+  // Cache successful GET responses
+  if (isGetRequest && response.ok) {
+    cache.set(cacheKey, { data, timestamp: Date.now() })
+  }
+
   return data
+}
+
+// Clear cache for specific endpoint pattern
+export function clearCache(pattern?: string) {
+  if (pattern) {
+    for (const key of cache.keys()) {
+      if (key.includes(pattern)) {
+        cache.delete(key)
+      }
+    }
+  } else {
+    cache.clear()
+  }
 }
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────

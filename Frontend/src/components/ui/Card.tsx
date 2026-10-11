@@ -7,6 +7,7 @@ interface CardProps {
   glass?: boolean
   neon?: boolean
   padding?: 'none' | 'sm' | 'md' | 'lg'
+  smPadding?: 'none' | 'sm' | 'md' | 'lg' // Padding for small screens
   gradient?: boolean
   animated?: boolean
   children?: ReactNode
@@ -25,12 +26,15 @@ export default function Card({
   glass = true,
   neon = false,
   padding = 'md',
+  smPadding,
   gradient = false,
   animated = true,
   children,
   className = '',
   ...props
 }: CardProps) {
+  const actualPadding = smPadding && window.innerWidth < 640 ? smPadding : padding
+
   return (
     <motion.div
       initial={animated ? { opacity: 0, y: 16 } : false}
@@ -50,7 +54,7 @@ export default function Card({
         neon && 'neon-glow',
         !glass && !gradient && 'bg-background-light border border-white/10',
         hover && 'cursor-pointer',
-        paddingClasses[padding],
+        paddingClasses[actualPadding],
         className
       )}
       {...props}

@@ -3,8 +3,9 @@ import { addToCart } from '../../store/slices/cartSlice'
 import { useToast } from '../ui/Toast'
 import RatingStars from './RatingStars'
 import { FiShoppingCart, FiHeart } from 'react-icons/fi'
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 
 export interface Product {
   id: string
@@ -22,9 +23,10 @@ interface ProductCardProps {
   product: Product
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
   const dispatch = useDispatch()
   const { showToast } = useToast()
+  const navigate = useNavigate()
   const [wishlist, setWishlist] = useState(false)
   const [adding, setAdding] = useState(false)
 
@@ -39,7 +41,10 @@ export default function ProductCard({ product }: ProductCardProps) {
       image: product.image,
     }))
     showToast(`${product.name} added to cart`, 'success')
-    setTimeout(() => setAdding(false), 700)
+    setTimeout(() => {
+      setAdding(false)
+      navigate('/cart')
+    }, 700)
   }
 
   const discount = product.originalPrice
@@ -133,4 +138,6 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
     </div>
   )
-}
+})
+
+export default ProductCard

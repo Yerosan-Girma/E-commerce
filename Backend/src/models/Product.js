@@ -35,7 +35,6 @@ const productSchema = new mongoose.Schema(
     store: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Store',
-      required: [true, 'Product must belong to a store'],
     },
     seller: {
       type: mongoose.Schema.Types.ObjectId,

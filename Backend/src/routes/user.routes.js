@@ -4,6 +4,7 @@ import {
   updateUserProfile,
   changePassword,
   getAllUsers,
+  updateUserStatus,
   getUserById,
   deleteUser,
 } from '../controllers/user.controller.js';
@@ -19,6 +20,7 @@ router.put('/change-password', protect, changePassword);
 
 // Admin-only routes
 router.get('/', protect, authorizeRoles('admin'), getAllUsers);
+router.put('/:id/status', protect, authorizeRoles('admin'), updateUserStatus);
 router.get('/:id', protect, authorizeRoles('admin'), getUserById);
 router.delete('/:id', protect, authorizeRoles('admin'), deleteUser);
 

@@ -5,7 +5,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 // @route   POST /api/categories
 // @access  Private (Admin only)
 export const createCategory = asyncHandler(async (req, res) => {
-  const { name, slug, description } = req.body;
+  const { name, slug, description, icon } = req.body;
 
   // Validate required fields
   if (!name || !slug) {
@@ -19,6 +19,7 @@ export const createCategory = asyncHandler(async (req, res) => {
     name,
     slug,
     description,
+    icon,
   });
 
   res.status(201).json({
@@ -32,12 +33,60 @@ export const createCategory = asyncHandler(async (req, res) => {
 // @route   GET /api/categories
 // @access  Public
 export const getCategories = asyncHandler(async (req, res) => {
-  const categories = await Category.find().sort({ createdAt: -1 });
+  const categories = await Category.aggregate([
+    { $sort: { createdAt: -1 } },
+    {
+      $lookup: {
+        from: 'products',
+        localField: '_id',
+        foreignField: 'category',
+        as: 'products',
+      },
+    },
+    {
+      $addFields: {
+        productsCount: { $size: '$products' },
+      },
+    },
+    {
+      $project: {
+        products: 0,
+      },
+    },
+  ]);
 
   res.status(200).json({
     success: true,
     message: 'Categories retrieved successfully',
     data: categories,
+  });
+});
+
+// @desc    Update category
+// @route   PUT /api/categories/:id
+// @access  Private (Admin only)
+export const updateCategory = asyncHandler(async (req, res) => {
+  const { name, slug, description, icon } = req.body;
+
+  const category = await Category.findById(req.params.id);
+
+  if (!category) {
+    const error = new Error('Category not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  category.name = name !== undefined ? name : category.name;
+  category.slug = slug !== undefined ? slug : category.slug;
+  category.description = description !== undefined ? description : category.description;
+  category.icon = icon !== undefined ? icon : category.icon;
+
+  await category.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Category updated successfully',
+    data: category,
   });
 });
 

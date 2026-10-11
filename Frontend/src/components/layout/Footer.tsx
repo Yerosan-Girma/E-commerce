@@ -44,12 +44,12 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-gray-950 dark:bg-darkbg text-gray-400 mt-20 border-t border-white/5">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-10">
+    <footer className="bg-gray-950 dark:bg-darkbg text-gray-400 mt-12 sm:mt-20 mb-16 sm:mb-0 border-t border-white/5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-x-6 gap-y-8 sm:gap-10">
 
           {/* Brand */}
-          <div className="lg:col-span-2">
+          <div className="col-span-2 lg:col-span-2">
             <Link to="/" className="inline-flex items-center gap-2.5 mb-5 group">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/30 group-hover:shadow-primary/50 transition-shadow">
                 <span className="text-white font-bold">M</span>
@@ -68,7 +68,7 @@ export default function Footer() {
               {subscribed ? (
                 <p className="text-sm text-emerald-400 font-medium">✓ You're subscribed!</p>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex gap-2 max-w-md">
                   <div className="relative flex-1">
                     <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
                     <input
@@ -112,7 +112,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="mt-12 pt-8 border-t border-gray-900 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="col-span-2 lg:col-span-6 mt-2 sm:mt-4 pt-6 sm:pt-8 border-t border-gray-900 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-gray-600">
             © {new Date().getFullYear()} MarketHub. All rights reserved.
           </p>

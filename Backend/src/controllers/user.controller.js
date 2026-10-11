@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import Order from '../models/Order.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 // @desc    Get current user profile
@@ -39,6 +40,8 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
       name: updatedUser.name,
       email: updatedUser.email,
       role: updatedUser.role,
+      status: updatedUser.status,
+      vendorStatus: updatedUser.vendorStatus,
       profileImage: updatedUser.profileImage,
       isVerified: updatedUser.isVerified,
     },
@@ -90,17 +93,85 @@ export const getAllUsers = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   const total = await User.countDocuments();
-  const users = await User.find().skip(skip).limit(limit).sort({ createdAt: -1 });
+  const users = await User.find().skip(skip).limit(limit).sort({ createdAt: -1 }).lean();
+  const userIds = users.map((user) => user._id);
+
+  const orderCounts = await Order.aggregate([
+    { $match: { user: { $in: userIds } } },
+    { $group: { _id: '$user', orders: { $sum: 1 } } },
+  ]);
+
+  const ordersByUser = new Map(orderCounts.map((item) => [item._id.toString(), item.orders]));
+  const enrichedUsers = users.map((user) => ({
+    ...user,
+    status: user.status || 'active',
+    vendorStatus: user.role === 'vendor' ? (user.vendorStatus || 'approved') : user.vendorStatus,
+    orders: ordersByUser.get(user._id.toString()) || 0,
+  }));
 
   res.status(200).json({
     success: true,
     message: 'Users retrieved successfully',
-    data: users,
+    data: enrichedUsers,
     pagination: {
       page,
       limit,
       total,
       pages: Math.ceil(total / limit),
+    },
+  });
+});
+
+// @desc    Update user account/vendor status (admin only)
+// @route   PUT /api/users/:id/status
+// @access  Private/Admin
+export const updateUserStatus = asyncHandler(async (req, res) => {
+  const { status, vendorStatus } = req.body;
+
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    const error = new Error('User not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (status !== undefined) {
+    if (!['active', 'suspended'].includes(status)) {
+      const error = new Error('Invalid user status');
+      error.statusCode = 400;
+      throw error;
+    }
+    user.status = status;
+  }
+
+  if (vendorStatus !== undefined) {
+    if (user.role !== 'vendor') {
+      const error = new Error('Vendor status can only be set on vendor accounts');
+      error.statusCode = 400;
+      throw error;
+    }
+    if (!['pending', 'approved', 'rejected', 'suspended'].includes(vendorStatus)) {
+      const error = new Error('Invalid vendor status');
+      error.statusCode = 400;
+      throw error;
+    }
+    user.vendorStatus = vendorStatus;
+  }
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'User status updated successfully',
+    data: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      vendorStatus: user.vendorStatus,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     },
   });
 });

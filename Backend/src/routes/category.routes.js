@@ -2,6 +2,7 @@ import express from 'express';
 import {
   createCategory,
   getCategories,
+  updateCategory,
   deleteCategory,
 } from '../controllers/category.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
@@ -14,6 +15,7 @@ router.get('/', getCategories);
 
 // Protected routes - require authentication and admin role
 router.post('/', protect, authorizeRoles('admin'), createCategory);
+router.put('/:id', protect, authorizeRoles('admin'), updateCategory);
 router.delete('/:id', protect, authorizeRoles('admin'), deleteCategory);
 
 export default router;

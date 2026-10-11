@@ -8,6 +8,7 @@ type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 interface ButtonProps {
   variant?: ButtonVariant
   size?: ButtonSize
+  smSize?: ButtonSize // Size for small screens (mobile)
   loading?: boolean
   fullWidth?: boolean
   disabled?: boolean
@@ -46,6 +47,7 @@ const sizeClasses: Record<ButtonSize, string> = {
 export default function Button({
   variant = 'primary',
   size = 'md',
+  smSize,
   loading = false,
   fullWidth = false,
   disabled,
@@ -54,6 +56,8 @@ export default function Button({
   className = '',
   ...props
 }: ButtonProps) {
+  const actualSize = smSize && window.innerWidth < 640 ? smSize : size
+
   return (
     <motion.button
       whileHover={disabled || loading ? {} : { scale: 1.025, y: -1 }}
@@ -64,7 +68,7 @@ export default function Button({
         'transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-2 focus:ring-offset-transparent',
         'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:translate-y-0',
         variantClasses[variant],
-        sizeClasses[size],
+        sizeClasses[actualSize],
         fullWidth && 'w-full',
         className,
       )}
