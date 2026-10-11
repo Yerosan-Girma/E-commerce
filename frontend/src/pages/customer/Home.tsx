@@ -6,9 +6,6 @@ import Button from '../../components/ui/Button'
 import Card from '../../components/ui/Card'
 import { cn } from '../../lib/utils'
 
-// Reduce animations on mobile for better performance
-const isMobile = () => window.innerWidth < 768
-
 const categories = [
   { name: 'Electronics', slug: 'electronics', icon: '💻', count: '3 products', color: 'from-primary to-blue-500', image: 'https://images.unsplash.com/photo-1498049794561-7780e4236e66?w=400' },
   { name: 'Fashion', slug: 'fashion', icon: '👗', count: '3 products', color: 'from-secondary to-violet-500', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400' },
